@@ -7,8 +7,9 @@
 [![Status](https://img.shields.io/badge/Release-Demo%20Only-informational)](#)
 [![License](https://img.shields.io/badge/License-NonCommercial%20%7C%20NoDerivatives-lightgrey)](#16-license--usage)
 
-> A next-generation, GPU-accelerated DTI system that fuses **hypergraph** molecular encoders, **protein language models** (ProtBert), rigorous **explainability**, and a clean web UI.  
-> **声明**：本仓库仅供**演示与学术评估**，**禁止商用与任何形式改编/再分发**；如需合作请**邮件联系**作者（见「License & Usage」）。
+> A next-generation, GPU-accelerated DTI system that fuses **hypergraph** molecular encoders, **protein language models** (ProtBert), rigorous **explainability**, and a clean web UI.
+
+> **Disclaimer**: This repository is provided solely for demonstration and academic evaluation purposes. Commercial use, redistribution, or any form of modification/adaptation is strictly prohibited. For collaboration or licensing inquiries, please contact the author via email (see “License & Usage”).
 
 <p align="center">
   <img width="100%" alt="MolHuiTu Overview" src="https://github.com/user-attachments/assets/0bf60f5b-a63f-4708-9910-d043bc655497" />
