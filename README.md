@@ -15,7 +15,7 @@
 - [3. Guided Tour (with Screenshots)](#3-guided-tour-with-screenshots)
 - [4. Architecture](#4-architecture)
 - [5. Prerequisites](#5-prerequisites)
-- [6. Installation (Ubuntu 24.04 + Conda + RTX 4090)](#6-installation-ubuntu-2404--conda--rtx-4090)
+- [6. Installation](#6-installation)
 - [7. Repository Layout](#7-repository-layout)
 - [8. Quick Start](#8-quick-start)
 - [9. CLI — Single & Batch Prediction](#9-cli--single--batch-prediction)
@@ -113,7 +113,9 @@ _Backend stack_: PyTorch (+ CUDA), PyTorch Geometric, RDKit, FastAPI/Uvicorn, XG
 
 ---
 
-## 6. Installation (Ubuntu 24.04 + Conda + RTX 4090)
+## 6. Installation 
+
+Example: Ubuntu 24.04 + Conda + RTX 4090
 
 ```bash
 # 0) Essentials
