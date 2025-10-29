@@ -50,106 +50,48 @@
 
 ## 3. Guided Tour (with Screenshots)
 
-## Usage
+### 3.1 Home → Entry Points
+A minimal home screen routes to single prediction, batch submission, and history.
 
-With the environment set up, you can now run the MolHuiTu application and perform predictions.
+<img width="3172" height="1582" alt="Home" src="https://github.com/user-attachments/assets/185000bc-4b54-4178-81e6-f7050db1f3cf" />
 
-### Starting the Backend Server
+---
 
-Start the MolHuiTu backend server which handles the predictions. Depending on how the project is structured, this could be done via a provided launch script or a direct Python command. For example:
-```bash
-# Example: if there's a script or module to run the web server
-python src/app.py
-```
-Or, if using a framework like FastAPI with Uvicorn:
-```bash
-uvicorn src.app:app --host 0.0.0.0 --port 8000
-```
-After running the above, you should see the server starting up, loading models into memory, and listening on a port (e.g. 8000). Ensure that this port is accessible if you are using a remote server.
+### 3.2 Single Prediction → Fill & Submit
+Provide **SMILES** and a **FASTA** (or UniProt ID). Toggle explainability if needed.
 
-### Accessing the Web Interface
+<img width="2646" height="1404" alt="Single Form" src="https://github.com/user-attachments/assets/45176290-8fe9-4349-95f0-428bec62b5da" />
 
-Once the backend is running, open a web browser and navigate to the MolHuiTu interface. If you’re running locally, use:  
-```
-http://localhost:8000
-```  
-(Adjust the port if needed, and use the server’s IP or domain if accessing remotely.)
+Status is tracked during inference:
 
-You should see the MolHuiTu home page with options for different prediction modes.
+<img width="2248" height="868" alt="Single In Progress" src="https://github.com/user-attachments/assets/f356af59-b01f-4e61-84ba-44877d8b384f" />
 
-**MolHuiTu Drug-Target Prediction Interface:**  
-<img width="2814" height="1492" alt="image" src="https://github.com/user-attachments/assets/b400ecd4-d50b-4c79-9718-c95243c61ac3" />  
-*_(Screenshot: The interface for Drug-Target Interaction prediction, where users can input a molecule (SMILES or structure file) and a protein sequence or identifier.)_*
+---
 
-#### Single Prediction
+### 3.3 Batch Mode → CSV Screening
+Upload a CSV with columns like `smiles,sequence` (and optional labels/ids).
 
-For a single DTI prediction:
+<img width="1416" height="394" alt="Batch Submit" src="https://github.com/user-attachments/assets/1a96e41f-dd1a-4231-8f16-be7045243fd4" />
 
-1. Navigate to the **Single Prediction** section of the interface.
-2. Input the required data:  
-   - **Drug Molecule:** Provide the molecule, typically as a SMILES string, a MOL file, or an identifier of the compound. The interface may also allow drawing the structure or uploading a file.  
-   - **Target Protein:** Provide the protein information, either as an amino acid sequence (FASTA format) or a known identifier (such as a UniProt ID).
-3. Click the **Submit** button to start the prediction.
+Monitor progress and download consolidated results:
 
-After submission, the task will be sent to the backend for processing. You will see a status indicator for the job.
+<img width="2920" height="752" alt="Batch Completed" src="https://github.com/user-attachments/assets/371e45a6-ef83-43d2-a9b2-6675680ccb30" />
 
-**Single Prediction Submission Example:**  
-<img width="2646" height="1404" alt="image" src="https://github.com/user-attachments/assets/45176290-8fe9-4349-95f0-428bec62b5da" />  
-*_(Screenshot: A single prediction entry form filled with a sample drug and target, ready to be submitted.)_*
+---
 
-While the prediction is running, MolHuiTu will indicate that the task is in progress.
+### 3.4 Reports → Scores & Rationale
+Per-sample reports summarize inputs, prediction scores, and visuals:
 
-**Single Prediction In Progress:**  
-<img width="2248" height="868" alt="image" src="https://github.com/user-attachments/assets/f356af59-b01f-4e61-84ba-44877d8b384f" />  
-*_(Screenshot: The interface showing a single prediction task in progress. Users are advised to wait as the model computes the results.)_*
+<p align="center">
+  <img width="1435" height="625" alt="Report 1" src="https://github.com/user-attachments/assets/73de69af-97b0-49d7-a709-ba364b5899c9" />
+</p>
 
-Once the prediction is complete, a result report will be available for viewing and download.
+Additional metrics and tables as needed:
 
-#### Batch Prediction
-
-MolHuiTu also supports batch processing, allowing you to run multiple predictions in one go:
-
-1. Go to the **Batch Prediction** section.
-2. Prepare an input file (CSV format) with each row representing a drug-target pair. For example, the repository provides a `batch_template.csv` as a template:  
-   *Each row might contain columns such as Drug_SMILES (or compound ID) and Target_Sequence (or target ID).*
-3. Upload the CSV file through the interface (or as instructed on the page).
-4. Submit the batch job. The interface will queue all tasks and start processing them one by one on the backend.
-
-After submitting, you'll see a list of tasks with their statuses (e.g. queued, running, completed).
-
-**Batch Task Submission Example:**  
-<img width="1416" height="394" alt="image" src="https://github.com/user-attachments/assets/1a96e41f-dd1a-4231-8f16-be7045243fd4" />  
-
-*_(Screenshot: A batch submission form where a CSV file has been selected for upload.)_*
-
-While the batch is running, you can monitor the progress of each task in real-time. Each job will update its status from "pending" to "running" to "completed" (or "failed" if an issue occurs).
-
-**Batch Tasks Status Dashboard:**  
-<img width="2920" height="752" alt="image" src="https://github.com/user-attachments/assets/371e45a6-ef83-43d2-a9b2-6675680ccb30" />  
-*_(Screenshot: Batch task list showing multiple tasks and their current status. Completed tasks have results available and links to view reports.)_*
-
-When all tasks are finished, you can review the results for each pair. You may also download a consolidated results file (e.g. a CSV similar to `batch_template.pred.csv` with added prediction outcomes for all input pairs).
-
-### Viewing Results and Reports
-
-For each completed prediction (single or batch), MolHuiTu provides a detailed report. A report typically includes:
-
-- The input details (drug and target, with identifiers or sequence).
-- The predicted interaction score or probability (indicating how likely the drug is to interact with the target).
-- Visualizations of the molecular structure of the drug (and possibly the target, if structural data is available or relevant).
-- Additional information such as confidence metrics, similarity to known compounds, target annotations, etc.
-
-**Example DTI Prediction Report:**  
-<img width="2870" height="1250" alt="image" src="https://github.com/user-attachments/assets/73de69af-97b0-49d7-a709-ba364b5899c9" />  
-*_(Screenshot: Part of a DTI prediction report, listing the input details and the predicted interaction score among other details.)_*
-
-Large reports may contain multiple sections, possibly including tables of results or interactive components.
-
-**Continuation of DTI Report:**  
-<img width="1064" height="568" alt="image" src="https://github.com/user-attachments/assets/914e7efe-a150-4e7d-8411-cf0d78e0cb7e" />  
-*_(Screenshot: Another section of the report, possibly showing additional metrics or a summary of results.)_*
-
-Reports can be viewed in the web interface and are also saved to the server (e.g., in the `outputs/` directory) for future reference or downloading.
+<p align="center">
+  <img width="532" height="284" alt="Report 2" src="https://github.com/user-attachments/assets/914e7efe-a150-4e7d-8411-cf0d78e0cb7e" />
+</p>
+---
 
 ## 4. Architecture
 - **Drug Encoder — HyperGraph-MAE**  
@@ -322,10 +264,6 @@ During heavy runs (esp. SHAP/occlusion), watch CPU/GPU:
 <img width="1013" height="300" alt="CPU htop" src="https://github.com/user-attachments/assets/184e0fc4-4d8a-498f-a039-9d8e0f3e7b99" />
 <img width="297" height="144" alt="GPU nvidia-smi" src="https://github.com/user-attachments/assets/af0e8d3c-aad1-43c9-951c-e161d0fac141" />
 
-*_(Screenshots: Terminal output of `htop` (top image) showing CPU usage across cores, and `nvidia-smi` (bottom image) showing the GPU (RTX 4090) memory and utilization during a batch inference.)_*
-
-Monitoring these resources can help in understanding performance. For instance, you can verify that the GPU is fully utilized during heavy computations. If the GPU is underutilized, you might consider increasing batch sizes or running multiple tasks in parallel (if supported) to better leverage the hardware.
-
 **Tips**
 - Prefer ≥24 GB VRAM for explainability.
 - Omit `--explain_*` for fast screening; add only to shortlisted candidates.
@@ -391,7 +329,7 @@ If you wish to allow limited reuse while protecting commercial rights, consider 
 Built on **RDKit**, **PyTorch**, **PyG**, **HuggingFace (ProtBert)**, **XGBoost**, **SHAP**, and **3Dmol.js**.  
 Software registration: _China National Copyright
 Administration_ **2025SR1938362** (MolHuiTu V8.1.2025).  
-Thanks to all contributors and the community. **Happy researching!** 🎉Developed by **XY-Lab**
+Thanks to all contributors and the community. **Happy researching!** 🎉
 
 ---
 
@@ -484,23 +422,3 @@ Thanks to all contributors and the community. **Happy researching!** 🎉Develop
 - `--shap_out FILE.json`: JSON output for explanations
 - `--shap_batch INT` (default `64`): forward batch for SHAP
 - `--viz_atoms_png FILE.png`, `--viz_atoms_svg FILE.svg`: RDKit atom heatmap outputs
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
