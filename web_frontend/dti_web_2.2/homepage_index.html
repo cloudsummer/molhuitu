@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分子慧图 - 智能药物靶点预测平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --bg-color: #F8F6F2;
+            --primary-color: #E67E22;
+            --dark-color: #2c2c2c;
+            --text-color: #6c6c6c;
+            --card-bg: #FFFFFF;
+            --border-color: #e8e6e3;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-color);
+            color: var(--dark-color);
+            scroll-behavior: smooth;
+            margin: 0; /* 移除浏览器默认8px外边距，避免左侧空隙 */
+        }
+
+        /* --- ENHANCED VISUAL EFFECTS START --- */
+
+        /* 1. Enhanced Animated Gradient Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #f8f6f2, #fdfbf9, #f5f3f0, #f8f6f2);
+            background-size: 300% 300%;
+            animation: gradient-flow 20s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 100% 0%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 2. Enhanced Content Fade-in Animation */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            filter: blur(8px);
+            transition: opacity 1s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                        transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        filter 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .reveal-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+        }
+        
+        /* 3. Enhanced Interactive 3D Effects for Cards */
+        .tech-card, .application-card, .comparison-card {
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tech-card::before, .application-card::before, .comparison-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(230, 126, 34, 0.1), transparent);
+            transition: left 0.6s;
+        }
+        
+        .tech-card:hover::before, .application-card:hover::before, .comparison-card:hover::before {
+            left: 100%;
+        }
+        
+        .tech-card:hover, .application-card:hover, .comparison-card:hover {
+            transform: perspective(1000px) rotateX(3deg) rotateY(-3deg) scale3d(1.02, 1.02, 1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(230, 126, 34, 0.1);
+        }
+
+        /* 4. Floating Animation for Hero Illustration */
+        .hero-illustration {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* 5. Enhanced Button Animations */
+        .btn-primary, .btn-secondary {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before, .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-primary:hover::before, .btn-secondary:hover::before {
+            left: 100%;
+        }
+
+        /* --- ENHANCED VISUAL EFFECTS END --- */
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem 1rem 0rem;
+            position: fixed; top: 0; width: 100%;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .navbar.scrolled { 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(230, 126, 34, 0.05);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { display: flex; align-items: center; gap: 1rem; cursor: pointer; text-decoration: none; }
+        .nav-logo { width: 40px; height: 40px; background: var(--primary-color); border-radius: 10px; display: none; align-items: center; justify-content: center; color: white; font-size: 1.25rem; transition: transform 0.6s ease; }
+        .nav-brand:hover .nav-logo { transform: rotate(360deg); }
+        .nav-logo-img { height: 48px; width: auto; display: block; }
+        .nav-title { font-size: 1.25rem; font-weight: 700; color: var(--dark-color); }
+        .nav-button { padding: 0.625rem 1.5rem; background: var(--dark-color); color: #ffffff; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        .nav-menu { display: flex; gap: 2rem; margin-left: 2rem; }
+        .nav-menu a { color: var(--dark-color); text-decoration: none; font-size: 0.95rem; }
+        .nav-menu a:hover { color: var(--primary-color); }
+        .nav-right { display: flex; align-items: center; gap: 1.25rem; }
+        .nav-right a { color: var(--dark-color); text-decoration: none; font-size: 0.95rem; }
+        .nav-right a:hover { color: var(--primary-color); }
+        .nav-register { padding: 0.5rem 1rem; background: #b22c1c; color: #ffffff !important; border-radius: 9999px; text-decoration: none; font-weight: 600; }
+        .nav-register:hover { background: #991b12; color: #ffffff !important; }
+        .nav-search { color: var(--text-color); }
+        @media (max-width: 1200px) { .nav-menu { gap: 1.25rem; } }
+        @media (max-width: 1024px) { .nav-menu { display: none; } }
+        .nav-button:hover { background: #1a1a1a; transform: translateY(-1px); }
+        
+        /* Enhanced Hero Section */
+        .hero-section {
+            min-height: 90vh;
+            padding: 8rem 0 3rem;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        
+        .scrollable-content {
+            position: relative;
+            z-index: 2;
+            background: var(--bg-color);
+        }
+        
+        .hero-container { 
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            align-items: center;
+            gap: 4rem;
+        }
+        .hero-left { max-width: 800px; }
+        .hero-right { 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 2rem;
+        }
+        .hero-illustration { 
+            width: 100%; 
+            max-width: 500px; 
+            height: auto; 
+            filter: drop-shadow(0 25px 80px rgba(0,0,0,0.1));
+            transition: all 0.3s ease;
+        }
+        .hero-content h1 { 
+            font-size: 3.5rem; 
+            font-weight: 800; 
+            color: var(--dark-color); 
+            margin-bottom: 1.5rem; 
+            line-height: 1.1;
+            background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-highlight { color: var(--primary-color); }
+        .hero-content p { 
+            font-size: 1.2rem; 
+            color: var(--text-color); 
+            line-height: 1.8; 
+            margin-bottom: 2.5rem; 
+            max-width: 680px;
+            font-weight: 400;
+        }
+        .cta-buttons { 
+            display: flex; 
+            gap: 1.5rem; 
+            flex-wrap: wrap;
+        }
+        .btn-primary { 
+            padding: 1rem 2rem; 
+            background: linear-gradient(135deg, var(--dark-color) 0%, #1a1a1a 100%); 
+            color: #ffffff; 
+            border: none; 
+            border-radius: 50px; 
+            font-size: 1rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+            text-decoration: none; 
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 8px 25px rgba(230, 126, 34, 0.3);
+            background: linear-gradient(135deg, var(--primary-color) 0%, #d35400 100%);
+        }
+        .btn-secondary { 
+            padding: 1rem 2rem; 
+            background: transparent; 
+            color: var(--dark-color); 
+            border: 2px solid var(--dark-color); 
+            border-radius: 50px; 
+            font-size: 1rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+            text-decoration: none; 
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-secondary:hover { 
+            background: var(--dark-color); 
+            color: #ffffff; 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 底部三项入口栏 */
+        .hero-quicklinks { position: absolute; left: 0; right: 0; bottom: 0rem; background: rgba(255,255,255,0.75); backdrop-filter: blur(8px); border-top: 1px solid var(--border-color); }
+        .hero-quicklinks .links { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(3,1fr); gap: 2rem; padding: 2rem 2rem; text-align: center; }
+        .hero-quicklinks h4 { margin: 0.5rem 0 0.25rem; font-weight: 700; color: var(--dark-color); font-size: 1.1rem; }
+        .hero-quicklinks p { margin: 0; color: var(--text-color); font-size: 1rem; }
+
+        @media (max-width: 768px) {
+            .hero-section { 
+                grid-template-columns: 1fr; 
+                padding-top: 6rem; 
+                min-height: 80vh;
+            }
+            .hero-content h1 { 
+                font-size: 2.8rem; 
+                line-height: 1.2;
+            }
+            .hero-content p {
+                font-size: 1.1rem;
+            }
+            .hero-quicklinks { position: static; }
+            .hero-quicklinks .links { grid-template-columns: 1fr; }
+            .cta-buttons {
+                justify-content: center;
+            }
+            .section-title {
+                font-size: 2.5rem;
+            }
+            .tech-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .comparison-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .application-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+        
+        /* Enhanced Content Sections */
+        .content-section { 
+            padding: 8rem 2rem; 
+            background: var(--card-bg);
+            position: relative;
+        }
+        .content-section.alt-bg { 
+            background: var(--bg-color);
+        }
+        .section-container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+        }
+        .section-header { 
+            text-align: center; 
+            margin-bottom: 4rem; 
+        }
+        .section-title { 
+            font-size: 3rem; 
+            font-weight: 700; 
+            color: var(--dark-color); 
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), #d35400);
+            border-radius: 2px;
+        }
+        .section-subtitle { 
+            font-size: 1.25rem; 
+            color: var(--text-color);
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .tech-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 3rem; 
+        }
+        .tech-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 20px; 
+            padding: 3rem; 
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .tech-icon { 
+            width: 80px; 
+            height: 80px; 
+            background: linear-gradient(135deg, var(--primary-color), #d35400); 
+            border-radius: 20px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin: 0 auto 2rem;
+            box-shadow: 0 8px 25px rgba(230, 126, 34, 0.2);
+            transition: all 0.3s ease;
+        }
+        .tech-card:hover .tech-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        .tech-title { 
+            font-size: 1.4rem; 
+            font-weight: 600; 
+            color: var(--dark-color); 
+            margin-bottom: 1.5rem; 
+        }
+        .tech-description { 
+            font-size: 1rem; 
+            color: var(--text-color); 
+            line-height: 1.7; 
+        }
+        
+        .comparison-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 4rem; 
+        }
+        .comparison-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 20px; 
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .comparison-header { 
+            text-align: center; 
+            margin-bottom: 2.5rem; 
+        }
+        .comparison-badge { 
+            display: inline-block; 
+            padding: 0.75rem 1.5rem; 
+            background: linear-gradient(135deg, var(--primary-color), #d35400); 
+            color: white; 
+            border-radius: 25px; 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+        }
+        .comparison-title { 
+            font-size: 1.8rem; 
+            font-weight: 700; 
+            color: var(--dark-color); 
+        }
+        .comparison-visual { 
+            margin: 2.5rem 0; 
+            padding: 1rem;
+            background: rgba(248, 246, 242, 0.5);
+            border-radius: 12px;
+        }
+        .feature-list { 
+            list-style: none; 
+            padding: 0; 
+        }
+        .feature-list li { 
+            padding: 1.25rem 0; 
+            border-bottom: 1px solid var(--border-color); 
+            font-size: 1rem; 
+            color: var(--dark-color);
+            position: relative;
+            padding-left: 2rem;
+        }
+        .feature-list li:last-child { 
+            border-bottom: none; 
+        }
+        .feature-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .feature-list li strong { 
+            color: var(--primary-color); 
+        }
+        
+        .application-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 3rem; 
+        }
+        .application-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 20px; 
+            padding: 2.5rem; 
+            border-left: 5px solid var(--primary-color);
+            position: relative;
+            overflow: hidden;
+        }
+        .application-title { 
+            font-size: 1.4rem; 
+            font-weight: 600; 
+            color: var(--primary-color); 
+            margin-bottom: 1rem; 
+        }
+        .application-description { 
+            font-size: 1rem; 
+            color: var(--text-color); 
+            line-height: 1.7; 
+        }
+        
+        .footer { background: var(--dark-color); color: #ffffff; padding: 3rem 2rem; text-align: center; }
+        .footer-content { max-width: 1200px; margin: 0 auto; }
+        .footer-text { font-size: 0.9375rem; color: rgba(255, 255, 255, 0.7); }
+        
+        .scroll-indicator { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); animation: bounce 2s infinite; transition: opacity 0.5s; }
+        @keyframes bounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-10px); } }
+        
+        @media (max-width: 1024px) {
+            .comparison-grid, .tech-grid, .application-grid { grid-template-columns: 1fr; }
+            .hero-content h1 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#hero" class="nav-brand">
+                <img src="文字.png" alt="logo" class="nav-logo-img">
+            </a>
+            <div class="nav-menu">
+                <a href="#products">产品</a>
+                <a href="#pricing">定价</a>
+                <a href="#technology">核心技术架构</a>
+                <a href="#comparison">超图 vs 传统图</a>
+                <a href="#applications">应用场景</a>
+                <a href="#devs">开发者</a>
+                <a href="#support">支持与服务</a>
+                <a href="#about">了解我们</a>
+            </div>
+            <div class="nav-right">
+                <i class="fas fa-search nav-search"></i>
+                <a href="#contact">联系我们</a>
+                <a href="#docs">文档</a>
+                <a href="login.html">登录</a>
+                <a href="login.html" class="nav-register">注册</a>
+            </div>
+        </div>
+    </nav>
+
+    <section id="hero" class="hero-section">
+        <div class="hero-container" id="hero-content">
+            <div class="hero-left hero-content">
+                <h1> 药物靶点相互作用预测平台</h1>
+                <p>新一代性能倍增、体验跃升的AI驱动药物研发平台。以超图表征与自监督学习为核心，为分子设计与靶点发现提供端到端解决方案。</p>
+                <div class="cta-buttons">
+                    <a href="login.html" class="btn-primary"></i> 了解详情</a>
+                </div>
+            </div>
+            <div class="hero-right">
+                <img src="converted_vector.svg" alt="平台插图" class="hero-illustration">
+            </div>
+        </div>
+        <div class="hero-quicklinks">
+            <div class="links">
+                <div>
+                    <h4>解决方案</h4>
+                    <p>满足多场景AI驱动药物研发的需求</p>
+                </div>
+                <div>
+                    <h4>新靶点发现</h4>
+                    <p>助力新药发现与药物重定位</p>
+                </div>
+                <div>
+                    <h4>了解产品</h4>
+                    <p>了解产品详情与使用方法</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="scrollable-content">
+        <section id="technology" class="content-section alt-bg reveal-on-scroll">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">核心技术架构</h2>
+                    <p class="section-subtitle">基于超图掩码自编码器的创新深度学习框架</p>
+                </div>
+                <div class="tech-grid">
+                    <div class="tech-card">
+                        <h3 class="tech-title">超图表示学习</h3>
+                        <p class="tech-description">构建多层次超图结构，包含键连接、环结构、官能团和氢键等超边类型，捕获分子内部的高阶相互作用关系</p>
+                    </div>
+                    <div class="tech-card">
+                        <h3 class="tech-title">增强型掩码自编码器</h3>
+                        <p class="tech-description">基于节点度数的智能掩码策略，结合轻量级解码器，实现高效的自监督特征学习</p>
+                    </div>
+                    <div class="tech-card">
+                        <h3 class="tech-title">多头注意力聚合</h3>
+                        <p class="tech-description">超图注意力聚合机制，动态加权节点特征，精确识别药物-靶点相互作用的关键位点</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="comparison" class="content-section reveal-on-scroll">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">超图 vs 传统图</h2>
+                    <p class="section-subtitle">突破传统图神经网络局限，实现更精准的分子表示</p>
+                </div>
+                <div class="comparison-grid">
+                    <div class="comparison-card">
+                        <div class="comparison-header"><h3 class="comparison-title">传统图表示</h3></div>
+                        <div class="comparison-visual"><svg viewBox="0 0 300 200" style="width: 100%;"><circle cx="50" cy="50" r="20" fill="#a0a0a0"></circle><circle cx="150" cy="50" r="20" fill="#a0a0a0"></circle><circle cx="250" cy="50" r="20" fill="#a0a0a0"></circle><circle cx="100" cy="150" r="20" fill="#a0a0a0"></circle><circle cx="200" cy="150" r="20" fill="#a0a0a0"></circle><line x1="50" y1="50" x2="150" y2="50" stroke="#c0c0c0" stroke-width="2"></line><line x1="150" y1="50" x2="250" y2="50" stroke="#c0c0c0" stroke-width="2"></line><line x1="50" y1="50" x2="100" y2="150" stroke="#c0c0c0" stroke-width="2"></line><line x1="150" y1="50" x2="100" y2="150" stroke="#c0c0c0" stroke-width="2"></line><line x1="150" y1="50" x2="200" y2="150" stroke="#c0c0c0" stroke-width="2"></line><line x1="250" y1="50" x2="200" y2="150" stroke="#c0c0c0" stroke-width="2"></line></svg></div>
+                        <ul class="feature-list"><li><strong>二元关系：</strong>每条边只能连接两个节点</li><li><strong>局部信息：</strong>难以捕获环结构、官能团等高阶相互作用</li><li><strong>信息损失：</strong>忽略了分子中的多体相互作用和长程依赖</li></ul>
+                    </div>
+                    <div class="comparison-card">
+                        <div class="comparison-header"><h3 class="comparison-title">超图表示</h3></div>
+                        <div class="comparison-visual"><svg viewBox="0 0 300 200" style="width: 100%;"><circle cx="50" cy="50" r="20" fill="#E67E22"></circle><circle cx="150" cy="50" r="20" fill="#E67E22"></circle><circle cx="250" cy="50" r="20" fill="#E67E22"></circle><circle cx="100" cy="150" r="20" fill="#E67E22"></circle><circle cx="200" cy="150" r="20" fill="#E67E22"></circle><ellipse cx="150" cy="100" rx="120" ry="70" fill="none" stroke="#E67E22" stroke-width="2" stroke-dasharray="5,5" opacity="0.6"></ellipse><ellipse cx="75" cy="100" rx="60" ry="80" fill="none" stroke="#D35400" stroke-width="2" stroke-dasharray="5,5" opacity="0.6"></ellipse><path d="M 150,50 Q 225,100 200,150" fill="none" stroke="#E67E22" stroke-width="2" stroke-dasharray="3,3" opacity="0.6"></path></svg></div>
+                        <ul class="feature-list"><li><strong>多元关系：</strong>超边可连接任意数量节点</li><li><strong>高阶信息：</strong>自然捕获环结构、官能团、氢键等高阶相互作用</li><li><strong>完整表示：</strong>保留分子中的多体相互作用和结构层次信息</li></ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="applications" class="content-section alt-bg reveal-on-scroll">
+            <div class="section-container">
+                <div class="section-header"><h2 class="section-title">应用场景</h2><p class="section-subtitle">推动药物研发的智能化转型</p></div>
+                <div class="application-grid">
+                    <div class="application-card"><h3 class="application-title">新药发现</h3><p class="application-description">快速筛选潜在的药物候选化合物，缩短药物发现周期，降低前期研发成本，提高新药开发成功率</p></div>
+                    <div class="application-card"><h3 class="application-title">药物重定位</h3><p class="application-description">发现现有药物的新用途，降低研发风险和成本，加速药物上市进程</p></div>
+                    <div class="application-card"><h3 class="application-title">靶点验证</h3><p class="application-description">验证蛋白质靶点的可药性，指导实验设计，提高靶点选择的准确性</p></div>
+                    <div class="application-card"><h3 class="application-title">副作用预测</h3><p class="application-description">预测药物与非预期靶点的相互作用，评估安全性，降低临床试验失败风险</p></div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="footer-content"><p class="footer-text">© 2025 分子慧图团队 | 软件著作权登记号[2025SR1938362] | 版本 V8.1.2025</p></div>
+        </footer>
+    </div>
+
+    <script>
+        // --- ADVANCED FEEL SCRIPT START ---
+
+        // 1. Hero Content Fade on Scroll
+        const heroContent = document.getElementById('hero-content');
+        const scrollIndicator = document.getElementById('scroll-indicator');
+        window.addEventListener('scroll', () => {
+            const scrollValue = window.scrollY;
+            const heroHeight = document.getElementById('hero').offsetHeight;
+            const fadeStart = 0;
+            const fadeUntil = heroHeight / 2;
+            
+            if (scrollValue >= fadeStart && scrollValue <= fadeUntil) {
+                const opacity = 1 - (scrollValue / fadeUntil);
+                const translateY = scrollValue / 10;
+                heroContent.style.opacity = opacity;
+                heroContent.style.transform = `translateY(${translateY}px)`;
+                scrollIndicator.style.opacity = opacity;
+            } else if (scrollValue > fadeUntil) {
+                heroContent.style.opacity = 0;
+                scrollIndicator.style.opacity = 0;
+            } else {
+                heroContent.style.opacity = 1;
+                heroContent.style.transform = `translateY(0px)`;
+                scrollIndicator.style.opacity = 1;
+            }
+        });
+
+        // 2. Content Fade-in using Intersection Observer (for performance)
+        const revealElements = document.querySelectorAll('.reveal-on-scroll');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // Optional: unobserve after it's visible so it doesn't re-trigger
+                    // revealObserver.unobserve(entry.target); 
+                }
+            });
+        }, {
+            threshold: 0.1 // Trigger when 10% of the element is visible
+        });
+
+        revealElements.forEach(elem => {
+            revealObserver.observe(elem);
+        });
+
+        // --- ADVANCED FEEL SCRIPT END ---
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+        });
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    // Use a more modern scrollIntoView for smooth behavior
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

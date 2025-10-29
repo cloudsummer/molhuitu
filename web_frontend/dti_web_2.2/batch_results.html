@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>批量任务状态 - 分子慧图</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg-color: #F8F6F2;
+            --primary-color: #E67E22;
+            --dark-color: #2c2c2c;
+            --text-color: #6c6c6c;
+            --card-bg: #FFFFFF;
+            --border-color: #E5E7EB;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-color);
+            color: var(--dark-color);
+        }
+        
+        /* Navbar */
+        .navbar { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-color); padding: 1rem 2rem 1rem 0rem; position: sticky; top: 0; width: 100%; z-index: 100; }
+        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { display: flex; align-items: center; gap: 1rem; text-decoration: none; }
+        .nav-logo-img { height: 48px; width: auto; }
+        .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-right a { color: var(--dark-color); text-decoration: none; font-size: 0.95rem; }
+        .nav-register { padding: 0.5rem 1rem; background: #b22c1c; color: #ffffff !important; border-radius: 9999px; text-decoration: none; font-weight: 600; }
+        
+        /* Main Container */
+        .main-container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 1.75rem; font-weight: 700; }
+        .action-button { display: inline-flex; align-items: center; padding: 0.5rem 1rem; background: var(--dark-color); color: #ffffff; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.875rem;}
+        .action-button.secondary { background-color: var(--card-bg); color: var(--dark-color); border: 1px solid var(--border-color); }
+        .cancel-btn { background: none; border: none; color: #ef4444; font-size: 0.8rem; font-weight: 500; cursor: pointer; }
+        .cancel-btn:hover { text-decoration: underline; }
+        
+        /* Tasks Table */
+        .tasks-table-container { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .tasks-table { width: 100%; border-collapse: collapse; }
+        .tasks-table th, .tasks-table td { padding: 1rem 1.5rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .tasks-table th { font-size: 0.8rem; font-weight: 600; color: var(--text-color); text-transform: uppercase; letter-spacing: 0.05em; }
+        .tasks-table tr:last-child td { border-bottom: none; }
+        .tasks-table td { font-size: 0.9rem; vertical-align: middle; }
+        .task-id { font-family: 'Courier New', monospace; font-size: 0.85rem; }
+        .status-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.6rem; font-size: 0.75rem; font-weight: 600; border-radius: 9999px; white-space: nowrap; }
+        .status-pending { background-color: #f3f4f6; color: #4b5563; }
+        .status-running { background-color: #dbeafe; color: #1e40af; }
+        .status-success { background-color: #dcfce7; color: #15803d; }
+        .status-failure { background-color: #fee2e2; color: #b91c1c; }
+
+        /* Full Navbar styles for consistency */
+        .nav-menu { display: flex; gap: 2rem; margin-left: 2rem; }
+        .nav-menu a { color: var(--dark-color); text-decoration: none; font-size: 0.95rem; }
+        @media (max-width: 1200px) { .nav-menu { gap: 1.25rem; } }
+        @media (max-width: 1024px) { .nav-menu { display: none; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+         <div class="nav-container">
+            <a href="homepage_index.html" class="nav-brand">
+                <img src="文字.png" alt="logo" class="nav-logo-img">
+            </a>
+            <div class="nav-menu">
+                <a href="homepage_index.html#products">产品</a>
+                <a href="homepage_index.html#pricing">定价</a>
+                <a href="homepage_index.html#technology">核心技术架构</a>
+                <a href="homepage_index.html#comparison">超图 vs 传统图</a>
+                <a href="homepage_index.html#applications">应用场景</a>
+                <a href="homepage_index.html#devs">开发者</a>
+                <a href="homepage_index.html#support">支持与服务</a>
+                <a href="homepage_index.html#about">了解我们</a>
+            </div>
+            <div class="nav-right">
+                <a href="history.html"><i class="fas fa-history mr-2"></i>历史记录</a>
+                <a href="homepage_index.html" class="nav-register">退出登录</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="header">
+            <h1>批量任务状态</h1>
+            <a href="prediction.html" class="action-button secondary"><i class="fas fa-plus mr-2"></i>新的预测</a>
+        </div>
+        <div class="tasks-table-container">
+            <table class="tasks-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>任务ID</th>
+                        <th>状态</th>
+                        <th>结果 (pKd)</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tasksTableBody">
+                    <!-- Rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const apiBase = window.location.origin;
+        const POLLING_INTERVAL = 3000;
+        let pollingTimer;
+        const taskStatusMap = new Map();
+        let currentBatchKey = null;
+
+        function getHistory() {
+            const historyJSON = localStorage.getItem('predictionHistory');
+            return historyJSON ? JSON.parse(historyJSON) : [];
+        }
+
+        function addToHistory(task) {
+            const history = getHistory();
+            if (!history.some(item => item.taskId === task.taskId)) {
+                history.push(task);
+                localStorage.setItem('predictionHistory', JSON.stringify(history));
+            }
+        }
+
+        async function initializePage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            currentBatchKey = urlParams.get('batch_key');
+            const tasksTableBody = document.getElementById('tasksTableBody');
+
+            if (!currentBatchKey) {
+                tasksTableBody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-red-600">错误：未提供批次ID。</td></tr>';
+                return;
+            }
+
+            const jobDataJSON = sessionStorage.getItem(currentBatchKey);
+            const optionsJSON = sessionStorage.getItem(`${currentBatchKey}_options`);
+
+            if (!jobDataJSON || !optionsJSON) {
+                tasksTableBody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-red-600">错误：找不到任务数据，可能是页面已刷新或会话已过期。</td></tr>';
+                return;
+            }
+
+            const jobs = JSON.parse(jobDataJSON);
+            const options = JSON.parse(optionsJSON);
+            
+            // Clear table before rebuilding to avoid duplicates on re-entry
+            tasksTableBody.innerHTML = '';
+
+            // 1. Render initial table state based on what we know
+            jobs.forEach((job, index) => {
+                const row = document.createElement('tr');
+                row.id = job.taskId ? `task-${job.taskId}` : `temp-row-${index}`;
+                
+                let idHtml = '<span class="text-gray-400">尚未提交</span>';
+                let statusHtml = '<span class="status-badge status-pending">● 等待提交</span>';
+                let actionHtml = '...';
+
+                if (job.taskId) {
+                    idHtml = job.taskId;
+                    // If we have a task ID, we assume it's at least pending/running until polled
+                    statusHtml = '<span class="status-badge status-pending">● 更新中...</span>';
+                    actionHtml = '...'; // Will be updated by poll immediately
+                    taskStatusMap.set(job.taskId, 'UNKNOWN'); // Force poll to update
+                }
+
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td class="task-id">${idHtml}</td>
+                    <td class="status-cell">${statusHtml}</td>
+                    <td class="result-cell text-gray-400">-</td>
+                    <td class="action-cell text-gray-500">${actionHtml}</td>
+                `;
+                tasksTableBody.appendChild(row);
+            });
+
+            // 2. Identify tasks that need submission vs polling
+            const tasksToSubmit = [];
+            const tasksToPoll = [];
+
+            jobs.forEach((job, index) => {
+                if (job.taskId) {
+                    tasksToPoll.push(job.taskId);
+                } else {
+                    tasksToSubmit.push({ job, index });
+                }
+            });
+
+            // 3. Start polling for existing tasks immediately
+            if (tasksToPoll.length > 0) {
+                pollStatuses(tasksToPoll); // Immediate first poll
+                if (!pollingTimer) {
+                     pollingTimer = setInterval(() => pollAllActiveTasks(), POLLING_INTERVAL);
+                }
+            }
+
+            // 4. Submit new tasks sequentially
+            for (const { job, index } of tasksToSubmit) {
+                const row = document.getElementById(`temp-row-${index}`);
+                row.querySelector('.task-id').textContent = '提交中...';
+                row.querySelector('.status-cell').innerHTML = `<span class="status-badge status-running">● 提交中</span>`;
+
+                try {
+                    const payload = { ...job, ...options };
+                    const response = await fetch(`${apiBase}/api/submit_task`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (!response.ok) throw new Error((await response.json()).detail || '请求失败');
+                    const data = await response.json();
+
+                    if (data.task_id) {
+                        // CRITICAL: Update job in memory and save back to sessionStorage
+                        job.taskId = data.task_id;
+                        sessionStorage.setItem(currentBatchKey, JSON.stringify(jobs));
+
+                        // Update history and session for reports
+                        addToHistory({ taskId: data.task_id, smiles: job.smiles, fasta: job.fasta, submissionTime: new Date().toISOString() });
+                        sessionStorage.setItem(`fasta_for_${data.task_id}`, job.fasta);
+
+                        // Update UI
+                        row.id = `task-${data.task_id}`;
+                        row.querySelector('.task-id').textContent = data.task_id;
+                        row.querySelector('.task-id').classList.remove('text-gray-400');
+                        row.querySelector('.status-cell').innerHTML = `<span class="status-badge status-pending">● 排队中</span>`;
+                        row.querySelector('.action-cell').innerHTML = `<button class="cancel-btn" onclick="cancelTask('${data.task_id}')">取消</button>`;
+                        
+                        taskStatusMap.set(data.task_id, 'PENDING');
+                        
+                        // Ensure polling is running if this was the first task
+                        if (!pollingTimer) {
+                             pollingTimer = setInterval(() => pollAllActiveTasks(), POLLING_INTERVAL);
+                        }
+                    } else {
+                        throw new Error('No task_id returned');
+                    }
+                } catch (err) {
+                    console.error(`Submission failed for row ${index + 1}:`, err);
+                    row.querySelector('.status-cell').innerHTML = `<span class="status-badge status-failure">● 提交失败</span>`;
+                    row.querySelector('.result-cell').textContent = err.message;
+                    row.querySelector('.result-cell').classList.add('text-red-600', 'text-xs');
+                    row.querySelector('.action-cell').innerHTML = `<span class="text-red-500">失败</span>`;
+                }
+            }
+        }
+
+        function pollAllActiveTasks() {
+            const activeTaskIds = Array.from(document.querySelectorAll('tr[id^="task-"]'))
+                .map(row => row.id.replace('task-', ''))
+                .filter(id => {
+                    const status = taskStatusMap.get(id);
+                    return status !== 'SUCCESS' && status !== 'FAILURE' && status !== 'CANCELLED';
+                });
+            
+            if (activeTaskIds.length > 0) {
+                pollStatuses(activeTaskIds);
+            } else if (activeTaskIds.length === 0 && pollingTimer) {
+                 // Optionally stop polling if EVERYTHING is done, 
+                 // but keep it running if we expect more submissions might happen weirdly.
+                 // For now, let's keep it simple and maybe not aggressively clear interval 
+                 // unless we are sure we are done done. 
+                 // Actually, clearing it is good for performance.
+                 // Let's double check we haven't missed any 'UNKNOWN' states from re-entry.
+                 const hasUnknown = Array.from(taskStatusMap.values()).includes('UNKNOWN');
+                 if (!hasUnknown) {
+                     clearInterval(pollingTimer);
+                     pollingTimer = null;
+                 }
+            }
+        }
+        
+        async function pollStatuses(taskIds) {
+            for (const taskId of taskIds) {
+                try {
+                    const response = await fetch(`${apiBase}/api/task_status/${taskId}`);
+                    if (!response.ok) continue;
+                    const data = await response.json();
+                    
+                    const row = document.getElementById(`task-${taskId}`);
+                    if (!row) continue;
+
+                    // Always update on re-entry (when status is UNKNOWN) or if status changed
+                    if (taskStatusMap.get(taskId) === data.status && taskStatusMap.get(taskId) !== 'UNKNOWN') continue;
+
+                    taskStatusMap.set(taskId, data.status);
+                    
+                    const statusCell = row.querySelector('.status-cell');
+                    const resultCell = row.querySelector('.result-cell');
+                    const actionCell = row.querySelector('.action-cell');
+                    
+                    let statusBadgeHTML = '';
+                    switch (data.status) {
+                        case 'SUCCESS':
+                            statusBadgeHTML = '<span class="status-badge status-success">● 成功</span>';
+                            resultCell.textContent = data.result?.output_json?.affinity?.toFixed(2) || 'N/A';
+                            resultCell.classList.remove('text-gray-400');
+                            actionCell.innerHTML = `<a href="results.html?task_id=${taskId}&source=batch" class="text-blue-600 hover:underline font-semibold">查看报告</a>`;
+                            break;
+                        case 'FAILURE':
+                            statusBadgeHTML = `<span class="status-badge status-failure">● 失败</span>`;
+                            resultCell.textContent = data.error || '未知错误';
+                            resultCell.classList.remove('text-gray-400');
+                            resultCell.classList.add('text-red-600', 'text-xs');
+                            actionCell.innerHTML = `<span class="text-red-500">失败</span>`;
+                            break;
+                        case 'PENDING':
+                            statusBadgeHTML = '<span class="status-badge status-pending">● 排队中</span>';
+                            actionCell.innerHTML = `<button class="cancel-btn" onclick="cancelTask('${taskId}')">取消</button>`;
+                            break;
+                        case 'STARTED':
+                        case 'RUNNING':
+                            statusBadgeHTML = '<span class="status-badge status-running">● 运行中</span>';
+                            actionCell.innerHTML = `<button class="cancel-btn" onclick="cancelTask('${taskId}')">取消</button>`;
+                            break;
+                        case 'CANCELLED':
+                            statusBadgeHTML = `<span class="status-badge status-failure">● 已取消</span>`;
+                            resultCell.textContent = '已取消';
+                            resultCell.classList.remove('text-gray-400');
+                            actionCell.innerHTML = `<span class="text-gray-500">已取消</span>`;
+                            break;
+                    }
+                    statusCell.innerHTML = statusBadgeHTML;
+                } catch (err) {
+                    console.error(`Error polling for task ${taskId}:`, err);
+                }
+            }
+        }
+
+        async function cancelTask(taskId) {
+            if (!confirm(`确定要取消任务 ${taskId} 吗？`)) return;
+
+            const row = document.getElementById(`task-${taskId}`);
+            const actionCell = row.querySelector('.action-cell');
+            actionCell.innerHTML = `<span class="text-gray-500">取消中...</span>`;
+            
+            try {
+                const response = await fetch(`${apiBase}/api/cancel_task/${taskId}`, { method: 'POST' });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || '取消请求失败');
+                }
+                
+                taskStatusMap.set(taskId, 'CANCELLED');
+                row.querySelector('.status-cell').innerHTML = '<span class="status-badge status-failure">● 已取消</span>';
+                row.querySelector('.result-cell').textContent = '已取消';
+                row.querySelector('.result-cell').classList.remove('text-gray-400');
+                actionCell.innerHTML = `<span class="text-gray-500">已取消</span>`;
+
+            } catch (err) {
+                console.error(`Failed to cancel task ${taskId}:`, err);
+                actionCell.innerHTML = `<span class="text-red-500">取消失败</span>`;
+            }
+        }
+
+        // Use pageshow to handle back button navigation correctly (restores state from BFCache)
+        window.addEventListener('pageshow', (event) => {
+            // If coming back from history, re-initialize to force a poll and UI refresh
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                 initializePage();
+            }
+        });
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', initializePage);
+
+    </script>
+</body>
+</html>

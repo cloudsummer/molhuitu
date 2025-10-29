@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>分子慧图 - 药物靶点预测</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root{
+      --bg-color:#F8F6F2; --primary-color:#E67E22; --primary-color-dark:#d35400;
+      --dark-color:#2c2c2c; --text-color:#6c6c6c; --card-bg:#FFFFFF; --border-color:#e8e6e3;
+      --input-bg:#FBFBFA; --input-border:#e8e6e3; --success-color:#27ae60;
+      --warning-color:#f39c12; --error-color:#e74c3c;
+    }
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-color);color:var(--dark-color);position:relative;}
+    body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#f8f6f2,#fdfbf9,#f5f3f0,#f8f6f2);background-size:300% 300%;animation:gradient-flow 30s ease infinite;z-index:-1;}
+    @keyframes gradient-flow{0%{background-position:0% 50%}25%{background-position:100% 0%}50%{background-position:100% 100%}75%{background-position:0% 100%}100%{background-position:0% 50%}}
+
+    .navbar{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-color);padding:1rem 2rem 1rem 0;position:fixed;top:0;width:100%;z-index:100;transition:all .4s cubic-bezier(.25,.46,.45,.94);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+    .nav-container{max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+    .nav-brand{display:flex;align-items:center;gap:1rem;text-decoration:none;transition:transform .3s ease}
+    .nav-brand:hover{transform:scale(1.02)}
+    .nav-logo-img{height:48px;width:auto;filter:drop-shadow(0 2px 8px rgba(0,0,0,.1))}
+    .nav-menu{display:flex;gap:2rem;margin-left:2rem}
+    .nav-menu a{color:var(--dark-color);text-decoration:none;font-size:.95rem;font-weight:500;transition:all .3s ease;position:relative}
+    .nav-menu a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--primary-color);transition:width .3s ease}
+    .nav-menu a:hover::after{width:100%}
+    .nav-menu a:hover{color:var(--primary-color)}
+    .nav-right{display:flex;align-items:center;gap:1.5rem}
+    .nav-right a{color:var(--dark-color);text-decoration:none;font-size:.95rem;font-weight:500;transition:all .3s ease}
+    .nav-right a:hover{color:var(--primary-color)}
+    .nav-register{padding:.5rem 1rem;background:linear-gradient(135deg,#b22c1c,#991b12);color:#fff!important;border-radius:25px;text-decoration:none;font-weight:600;transition:all .3s ease;box-shadow:0 4px 15px rgba(178,44,28,.3)}
+    .nav-register:hover{background:linear-gradient(135deg,#991b12,#7a150e);transform:translateY(-2px);box-shadow:0 6px 20px rgba(178,44,28,.4)}
+
+    .main-container{max-width:1200px;margin:0 auto;padding:8rem 2rem 4rem}
+    .section-header{text-align:center;margin-bottom:2rem}
+    .section-title{font-size:2rem;font-weight:700;margin-bottom:.5rem}
+    .section-subtitle{font-size:1rem;color:var(--text-color)}
+    .tab-nav{border-bottom:2px solid var(--border-color);margin-bottom:3rem;background:rgba(255,255,255,.5);border-radius:12px 12px 0 0;padding:.5rem}
+    .tab-button{padding:1rem 2rem;border:none;background:transparent;cursor:pointer;font-size:1rem;font-weight:600;color:var(--text-color);border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:8px;transition:all .3s ease;position:relative}
+    .tab-button:hover{background:rgba(230,126,34,.1);color:var(--primary-color)}
+    .tab-button.active{color:var(--primary-color);border-bottom-color:var(--primary-color);background:rgba(230,126,34,.1)}
+
+    .input-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:20px;padding:2.5rem;box-shadow:0 8px 25px rgba(0,0,0,.05);transition:all .3s ease;position:relative;overflow:hidden}
+    .input-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--primary-color),var(--primary-color-dark))}
+    .input-card:hover{transform:translateY(-2px);box-shadow:0 12px 35px rgba(0,0,0,.1)}
+    .input-title{font-size:1.4rem;font-weight:700;margin-bottom:2rem;color:var(--dark-color)}
+    .form-label{display:flex;align-items:center;font-size:1rem;font-weight:600;margin-bottom:.75rem;color:var(--dark-color)}
+    .form-textarea{width:100%;padding:1.25rem;background:var(--input-bg);border:2px solid var(--input-border);border-radius:12px;font-family:'Monaco','Courier New',monospace;font-size:.9rem;resize:vertical;transition:all .3s ease;outline:none}
+    .form-textarea:focus{border-color:var(--primary-color);box-shadow:0 0 0 4px rgba(230,126,34,.1);background:var(--card-bg)}
+    .form-input,.form-select{width:100%;padding:.75rem 1rem;background:var(--input-bg);border:2px solid var(--input-border);border-radius:10px;font-size:.9rem;height:44px;transition:all .3s ease;outline:none}
+    .form-input:focus,.form-select:focus{border-color:var(--primary-color);box-shadow:0 0 0 4px rgba(230,126,34,.1);background:var(--card-bg)}
+    .input-footer{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem}
+    .input-hint{font-size:.9rem;color:var(--text-color);font-weight:500}
+    .action-button{background:none;border:none;color:var(--primary-color);font-size:.9rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;transition:all .3s ease;padding:.5rem 1rem;border-radius:8px}
+    .action-button:hover{background:rgba(230,126,34,.1);transform:translateY(-1px)}
+    .predict-button{padding:1.25rem 3rem;background:linear-gradient(135deg,var(--primary-color),var(--primary-color-dark));color:#fff;border:none;border-radius:12px;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all .4s cubic-bezier(.25,.46,.45,.94);display:inline-flex;align-items:center;justify-content:center;gap:.75rem;box-shadow:0 8px 25px rgba(230,126,34,.3);position:relative;overflow:hidden}
+    .predict-button::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);transition:left .5s}
+    .predict-button:hover::before{left:100%}
+    .predict-button:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(230,126,34,.4)}
+    .predict-button:disabled{background:linear-gradient(135deg,#f39c12,#e67e22);opacity:.7;cursor:not-allowed;transform:none;box-shadow:0 4px 15px rgba(243,156,18,.3)}
+    .loader{width:24px;height:24px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .file-upload-label{display:inline-flex;align-items:center;padding:1rem 2rem;background:linear-gradient(135deg,var(--dark-color),#1a1a1a);color:#fff;border-radius:12px;cursor:pointer;font-weight:600;transition:all .3s ease;box-shadow:0 4px 15px rgba(0,0,0,.1)}
+    .file-upload-label:hover{background:linear-gradient(135deg,#4a4a4a,#2c2c2c);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.15)}
+
+    .options-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:20px;padding:2.5rem;margin-top:3rem;box-shadow:0 8px 25px rgba(0,0,0,.05);position:relative;overflow:hidden}
+    .options-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--primary-color),var(--primary-color-dark))}
+    .checkbox-label{display:flex;align-items:center;cursor:pointer;user-select:none;margin-top:1.5rem;font-size:1rem;font-weight:500;color:var(--dark-color);transition:all .3s ease}
+    .checkbox-label:hover{color:var(--primary-color)}
+    .checkbox-label input{opacity:0;width:0;height:0}
+    .checkbox-custom{width:22px;height:22px;border:2px solid var(--border-color);border-radius:6px;display:inline-block;position:relative;margin-right:1rem;transition:all .3s ease;background:var(--input-bg)}
+    .checkbox-label input:checked ~ .checkbox-custom{background:linear-gradient(135deg,var(--primary-color),var(--primary-color-dark));border-color:var(--primary-color);transform:scale(1.1)}
+    .checkbox-custom::after{content:'';position:absolute;display:none;left:7px;top:3px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+    .checkbox-label input:checked ~ .checkbox-custom::after{display:block}
+
+    #advanced-toggle-btn{transition:all .3s ease;padding:1rem;border-radius:8px;background:rgba(230,126,34,.05)}
+    #advanced-toggle-btn:hover{background:rgba(230,126,34,.1)}
+    #advanced-toggle-btn i{transition:transform .3s ease}
+    #advanced-settings{overflow:hidden;max-height:0;transition:max-height .4s cubic-bezier(.25,.46,.45,.94)}
+    #advanced-settings.open{max-height:600px}
+    .setting-grid{display:grid;grid-template-columns:4fr 1fr;gap:1.5rem;align-items:center;margin-top:1.5rem;justify-items:start}
+
+    .tooltip-icon{cursor:pointer;margin-left:.5rem;color:var(--text-color);transition:color .3s ease}
+    .tooltip-icon:hover{color:var(--primary-color)}
+    .tooltip-box{visibility:hidden;opacity:0;width:280px;background:linear-gradient(135deg,#333,#2c2c2c);color:#fff;text-align:left;border-radius:12px;padding:12px 16px;font-size:.85rem;font-weight:400;position:fixed;z-index:1010;box-shadow:0 8px 25px rgba(0,0,0,.3);transition:opacity .3s ease;backdrop-filter:blur(10px)}
+    .tooltip-box.visible{visibility:visible;opacity:1}
+    .tooltip-box::after{content:"";position:absolute;border-width:8px;border-style:solid}
+    .tooltip-box.on-top::after{top:100%;left:50%;transform:translateX(-50%);border-color:#333 transparent transparent transparent}
+    .tooltip-box.on-bottom::after{bottom:100%;left:50%;transform:translateX(-50%);border-color:transparent transparent #333 transparent}
+
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:all .3s ease;backdrop-filter:blur(8px)}
+    .modal-overlay.show{opacity:1;visibility:visible}
+    .modal-box{background:var(--card-bg);border-radius:20px;padding:2rem;width:100%;max-width:800px;box-shadow:0 20px 60px rgba(0,0,0,.3);transform:scale(.9);transition:transform .3s ease}
+    .modal-overlay.show .modal-box{transform:scale(1)}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;border-bottom:2px solid var(--border-color);padding-bottom:1rem}
+    .modal-title{font-size:1.5rem;font-weight:700;color:var(--dark-color)}
+    .modal-close-btn{background:none;border:none;font-size:1.8rem;cursor:pointer;color:var(--text-color);transition:all .3s ease;padding:.5rem;border-radius:50%}
+    .modal-close-btn:hover{background:rgba(230,126,34,.1);color:var(--primary-color);transform:scale(1.1)}
+    .modal-loading{text-align:center}
+    .modal-info-grid{display:grid;grid-template-columns:140px 1fr;gap:1rem;font-size:1rem}
+    #modalViewerContainer{width:100%;height:400px;border:2px solid var(--border-color);border-radius:12px;margin-top:2rem;position:relative;background:var(--input-bg)}
+  </style>
+</head>
+<body>
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="homepage_index.html" class="nav-brand">
+        <img src="文字.png" alt="logo" class="nav-logo-img">
+      </a>
+      <div class="nav-menu">
+        <a href="#products">产品</a><a href="#pricing">定价</a><a href="#technology">核心技术架构</a>
+        <a href="#comparison">超图 vs 传统图</a><a href="#applications">应用场景</a><a href="#devs">开发者</a>
+        <a href="#support">支持与服务</a><a href="#about">了解我们</a>
+      </div>
+      <div class="nav-right">
+        <a href="#contact">联系我们</a>
+        <a href="#docs">文档</a>
+        <a href="history.html">历史记录</a>
+        <a href="homepage_index.html" class="nav-register">退出登录</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-container">
+    <section id="prediction" class="prediction-section">
+      <div class="section-header">
+        <h2 class="section-title">药物靶点相互作用预测</h2>
+        <p class="section-subtitle">选择预测模式，输入信息以生成分析报告</p>
+      </div>
+
+      <div class="tab-nav">
+        <button id="singleModeBtn" class="tab-button active">单次预测</button>
+        <button id="batchModeBtn" class="tab-button">批量预测</button>
+      </div>
+
+      <div>
+        <!-- 单次 -->
+        <div id="singleModeContent">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="input-card">
+              <h3 class="input-title">药物分子输入</h3>
+              <label class="form-label" for="smilesInput">SMILES 字符串</label>
+              <textarea id="smilesInput" class="form-textarea" rows="8" placeholder="例如: CCO (乙醇)"></textarea>
+              <div class="input-footer">
+                <span class="input-hint">支持标准 SMILES 格式</span>
+                <div class="flex items-center gap-4">
+                  <button class="action-button" id="searchSmilesBtn">查询</button>
+                  <button class="action-button" onclick="clearDrug()">清空</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-card">
+              <h3 class="input-title">蛋白质靶点输入</h3>
+              <label class="form-label" for="targetInput">FASTA 序列</label>
+              <textarea id="targetInput" class="form-textarea" rows="8" placeholder=">Protein Name...
+MKKLLVV..."></textarea>
+              <div class="input-footer">
+                <span class="input-hint">查询可显示 3D 结构</span>
+                <div class="flex items-center gap-4">
+                  <button class="action-button" id="searchFastaBtn">查询</button>
+                  <button class="action-button" onclick="clearTarget()">清空</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-center mt-8">
+            <button id="predictBtn" class="predict-button">
+              <span id="predictBtnText">提交单次预测</span>
+              <div id="predictBtnLoader" class="loader" style="display:none"></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 批量 -->
+        <div id="batchModeContent" class="hidden">
+          <div class="input-card">
+            <h3 class="input-title">上传批量任务文件</h3>
+            <p class="text-sm text-gray-600 mb-4">
+              请上传包含 <code class="bg-gray-200 p-1 rounded">smiles</code> 和
+              <code class="bg-gray-200 p-1 rounded">protein</code> 列的 CSV 文件。
+            </p>
+            <div class="flex flex-wrap items-center gap-4">
+              <input type="file" id="csvFileInput" accept=".csv" class="hidden">
+              <label for="csvFileInput" class="file-upload-label">选择 CSV 文件</label>
+              <a href="#" id="downloadTemplateBtn" class="action-button">下载模板文件</a>
+            </div>
+            <div class="mt-2">
+              <span id="fileNameDisplay" class="text-sm text-gray-500">未选择文件</span>
+            </div>
+            <div id="batchStatus" class="mt-4 text-sm text-gray-700 font-medium h-5"></div>
+            <div class="mt-6">
+              <button id="submitBatchBtn" class="predict-button" disabled>
+                <span id="submitBatchBtnText">提交批量预测</span>
+                <div id="submitBatchBtnLoader" class="loader" style="display:none"></div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 统一选项 -->
+      <div class="options-card">
+        <h3 class="input-title text-center">分析选项 (对所有任务生效)</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <label class="checkbox-label">
+            <input type="checkbox" id="explainAtoms" checked>
+            <span class="checkbox-custom"></span><span>药物原子贡献分析</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="explainResidues" checked>
+            <span class="checkbox-custom"></span><span>蛋白质残基贡献分析</span>
+          </label>
+        </div>
+
+        <button id="advanced-toggle-btn" type="button" class="flex justify-between items-center w-full mt-6 pt-4 border-t border-gray-200">
+          <span>高级设置</span><i id="advanced-toggle-icon" class="fas fa-chevron-down"></i>
+        </button>
+
+        <div id="advanced-settings">
+          <div class="pt-4 space-y-4">
+            <div class="setting-grid">
+              <label for="shap_background_strategy" class="form-label">SHAP 背景策略</label>
+              <select id="shap_background_strategy" class="form-select">
+                <option value="mix" selected>Mix</option>
+                <option value="remove">Remove</option>
+                <option value="local">Local</option>
+              </select>
+            </div>
+            <div class="setting-grid">
+              <label for="background" class="form-label">背景样本数</label>
+              <input type="number" id="background" value="5" min="1" class="form-input text-center">
+            </div>
+            <div class="setting-grid">
+              <label for="nsamples" class="form-label">SHAP 样本数</label>
+              <input type="number" id="nsamples" value="10" min="1" class="form-input text-center">
+            </div>
+            <div class="setting-grid">
+              <label for="shap_topk" class="form-label">报告 Top-K 贡献值</label>
+              <input type="number" id="shap_topk" value="10" min="1" max="20" class="form-input text-center">
+            </div>
+          </div>
+
+          <div id="residue-settings" class="hidden mt-4 pt-4 border-t border-dashed border-gray-300">
+            <h4 class="font-semibold text-sm text-gray-800 mb-2">残基分析设置</h4>
+            <div class="space-y-4">
+              <div class="setting-grid">
+                <label for="residue_explainer" class="form-label">解释器</label>
+                <select id="residue_explainer" class="form-select">
+                  <option value="occlusion" selected>Occlusion</option>
+                  <option value="kernelshap">KernelSHAP</option>
+                </select>
+              </div>
+              <div class="setting-grid">
+                <label for="residue_max" class="form-label">最大解释残基数</label>
+                <input type="number" id="residue_max" value="512" min="1" class="form-input text-center">
+              </div>
+              <div class="setting-grid">
+                <label for="residue_stride" class="form-label">步长</label>
+                <input type="number" id="residue_stride" value="1" min="1" class="form-input text-center">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="errorSection" class="text-center text-red-600 mt-4 font-semibold"></div>
+    </section>
+  </div>
+
+  <!-- 模态框 -->
+  <div id="infoModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalTitle" class="modal-title">信息</h3>
+        <button id="closeModalBtn" class="modal-close-btn">&times;</button>
+      </div>
+      <div id="modalContent" class="py-2"></div>
+    </div>
+  </div>
+
+  <!-- 3Dmol 本地优先，失败回退 CDN -->
+  <script src="./3Dmol-min.js"
+    onerror="(function(){var s=document.createElement('script');s.src='https://3Dmol.org/build/3Dmol-min.js';document.head.appendChild(s);})();">
+  </script>
+  <script src="papaparse.min.js"></script>
+
+  <script>
+    const apiBase = window.location.origin;
+
+    // 历史
+    function getHistory(){const j=localStorage.getItem('predictionHistory');return j?JSON.parse(j):[]}
+    function addToHistory(task){const h=getHistory();if(!h.some(x=>x.taskId===task.taskId)){h.push(task);localStorage.setItem('predictionHistory',JSON.stringify(h))}}
+
+    // DOM
+    const smilesInput=document.getElementById('smilesInput');
+    const targetInput=document.getElementById('targetInput');
+    const predictBtn=document.getElementById('predictBtn');
+    const searchSmilesBtn=document.getElementById('searchSmilesBtn');
+    const searchFastaBtn=document.getElementById('searchFastaBtn');
+    const csvFileInput=document.getElementById('csvFileInput');
+    const submitBatchBtn=document.getElementById('submitBatchBtn');
+    const errorSection=document.getElementById('errorSection');
+    const modal=document.getElementById('infoModal');
+    const modalTitle=document.getElementById('modalTitle');
+    const modalContent=document.getElementById('modalContent');
+    const closeModalBtn=document.getElementById('closeModalBtn');
+    const singleModeBtn=document.getElementById('singleModeBtn');
+    const batchModeBtn=document.getElementById('batchModeBtn');
+    const singleModeContent=document.getElementById('singleModeContent');
+    const batchModeContent=document.getElementById('batchModeContent');
+    const downloadTemplateBtn=document.getElementById('downloadTemplateBtn');
+    const explainAtomsCheck=document.getElementById('explainAtoms');
+    const explainResiduesCheck=document.getElementById('explainResidues');
+    const advancedToggleBtn=document.getElementById('advanced-toggle-btn');
+    const advancedSettingsPanel=document.getElementById('advanced-settings');
+    const advancedToggleIcon=document.getElementById('advanced-toggle-icon');
+    const shapBkgStrategyInput=document.getElementById('shap_background_strategy');
+    const backgroundInput=document.getElementById('background');
+    const nsamplesInput=document.getElementById('nsamples');
+    const shapTopkInput=document.getElementById('shap_topk');
+    const residueSettingsPanel=document.getElementById('residue-settings');
+    const residueExplainerInput=document.getElementById('residue_explainer');
+    const residueMaxInput=document.getElementById('residue_max');
+    const residueStrideInput=document.getElementById('residue_stride');
+
+    // Tab
+    function switchMode(m){
+      if(m==='single'){singleModeBtn.classList.add('active');batchModeBtn.classList.remove('active');singleModeContent.classList.remove('hidden');batchModeContent.classList.add('hidden')}
+      else{batchModeBtn.classList.add('active');singleModeBtn.classList.remove('active');batchModeContent.classList.remove('hidden');singleModeContent.classList.add('hidden')}
+    }
+    singleModeBtn.addEventListener('click',()=>switchMode('single'));
+    batchModeBtn.addEventListener('click',()=>switchMode('batch'));
+    switchMode('single');
+
+    // Modal
+    function openModal(){modal.classList.add('show')}
+    function closeModal(){modal.classList.remove('show')}
+    closeModalBtn.addEventListener('click',closeModal);
+    modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
+
+    // 高级折叠
+    advancedToggleBtn.addEventListener('click',()=>{
+      advancedSettingsPanel.classList.toggle('open');
+      advancedToggleIcon.style.transform = advancedSettingsPanel.classList.contains('open')?'rotate(180deg)':'rotate(0deg)';
+    });
+
+    // 残基设置显隐
+    function toggleResidueSettings(){explainResiduesCheck.checked?residueSettingsPanel.classList.remove('hidden'):residueSettingsPanel.classList.add('hidden')}
+    explainResiduesCheck.addEventListener('change',toggleResidueSettings);
+    toggleResidueSettings();
+
+    // 清空
+    window.clearDrug=function(){smilesInput.value=''}
+    window.clearTarget=function(){targetInput.value=''}
+
+    // 校验
+    function validateSmiles(s){if(!s||!s.trim())return{isValid:false,message:"SMILES 字符串不能为空。"};if(!/[A-Za-z]/.test(s))return{isValid:false,message:"SMILES 字符串必须包含原子符号。"};return{isValid:true}}
+    function validateFasta(f){if(!f||!f.trim())return{isValid:false,message:"FASTA 序列不能为空。"};if(!f.startsWith('>'))return{isValid:false,message:"FASTA 必须以 '>' 开头。"};const lines=f.trim().split(/\r?\n/);if(lines.length<2||lines[0].substring(1).trim().length===0)return{isValid:false,message:"FASTA 格式不完整。"};return{isValid:true}}
+
+    // 统一选项
+    function getPredictionOptions(){
+      return {
+        explain_atoms:explainAtomsCheck.checked, explain_residues:explainResiduesCheck.checked,
+        shap_background_strategy:shapBkgStrategyInput.value,
+        background:parseInt(backgroundInput.value,10),
+        nsamples:parseInt(nsamplesInput.value,10),
+        shap_topk:parseInt(shapTopkInput.value,10),
+        residue_explainer:residueExplainerInput.value,
+        residue_max:parseInt(residueMaxInput.value,10),
+        residue_stride:parseInt(residueStrideInput.value,10),
+      }
+    }
+
+    // 单次提交
+    async function submitPredictionTask(){
+      errorSection.textContent='';
+      const smiles=smilesInput.value.trim();
+      const fasta=targetInput.value.trim();
+      const sOk=validateSmiles(smiles); if(!sOk.isValid){errorSection.textContent=sOk.message;return}
+      const fOk=validateFasta(fasta);   if(!fOk.isValid){errorSection.textContent=fOk.message;return}
+
+      predictBtn.disabled=true;
+      document.getElementById('predictBtnText').style.display='none';
+      document.getElementById('predictBtnLoader').style.display='block';
+
+      const payload={smiles,fasta,...getPredictionOptions()};
+      try{
+        const resp=await fetch(`${apiBase}/api/submit_task`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.detail||`服务器错误: ${resp.status}`)}
+        const data=await resp.json();
+        if(data.task_id){
+          addToHistory({taskId:data.task_id,smiles,fasta,submissionTime:new Date().toISOString()});
+          sessionStorage.setItem(`fasta_for_${data.task_id}`,fasta);
+          window.location.href=`results.html?task_id=${data.task_id}`;
+        }else{
+          throw new Error('任务提交成功，但未返回任务ID。')
+        }
+      }catch(err){
+        errorSection.textContent=`提交失败: ${err.message}`;
+      }finally{
+        predictBtn.disabled=false;
+        document.getElementById('predictBtnText').style.display='inline';
+        document.getElementById('predictBtnLoader').style.display='none';
+      }
+    }
+    predictBtn.addEventListener('click',submitPredictionTask);
+
+    // 批量
+    csvFileInput.addEventListener('change',()=>{
+      const d=document.getElementById('fileNameDisplay');
+      if(csvFileInput.files.length>0){d.textContent=csvFileInput.files[0].name;submitBatchBtn.disabled=false;document.getElementById('batchStatus').textContent=''}
+      else{d.textContent='未选择文件';submitBatchBtn.disabled=true}
+    });
+    function resetBatchUI(){
+      submitBatchBtn.disabled=false;csvFileInput.disabled=false;document.getElementById('submitBatchBtnText').textContent='提交批量预测';
+      document.getElementById('submitBatchBtnLoader').style.display='none';csvFileInput.value='';document.getElementById('fileNameDisplay').textContent='未选择文件';
+    }
+    function prepareBatchAndRedirect(){
+      const file=csvFileInput.files[0];const st=document.getElementById('batchStatus');
+      if(!file){st.textContent='请先选择一个 CSV 文件。';return}
+      submitBatchBtn.disabled=true;document.getElementById('submitBatchBtnText').textContent='处理中...';document.getElementById('submitBatchBtnLoader').style.display='block';
+      st.textContent='正在读取和解析文件...';
+      Papa.parse(file,{
+        header:true,skipEmptyLines:true,transformHeader:h=>h.replace(/^\ufeff/,'').trim().toLowerCase(),
+        complete:function(res){
+          try{
+            if(res.errors.length>0)throw new Error(`CSV 文件格式错误: ${res.errors[0].message}`);
+            const required=['smiles','protein'];const fields=res.meta.fields||[];
+            if(!required.every(h=>fields.includes(h)))throw new Error("CSV 表头必须包含 'smiles' 和 'protein' 列。");
+            const rows=res.data||[]; if(rows.length===0)throw new Error('CSV 文件中没有有效的数据行。');
+            st.textContent=`正在验证 ${rows.length} 行数据...`;
+            const valid=[];
+            for(const row of rows){
+              const s=(row.smiles||'').trim(); const f=(row.protein||'').trim();
+              if(validateSmiles(s).isValid && validateFasta(f).isValid) valid.push({smiles:s,fasta:f});
+            }
+            if(valid.length===0)throw new Error('文件中没有找到任何有效的任务行。');
+            const key='batch_job_'+Date.now();
+            sessionStorage.setItem(key,JSON.stringify(valid));
+            sessionStorage.setItem(`${key}_options`,JSON.stringify(getPredictionOptions()));
+            st.textContent=`找到 ${valid.length} 个有效任务，正在跳转...`;
+            window.location.href=`batch_results.html?batch_key=${key}`;
+          }catch(e){st.textContent=`处理失败: ${e.message}`;resetBatchUI()}
+        },
+        error:function(){st.textContent='错误: 无法读取文件。';resetBatchUI()}
+      });
+    }
+    submitBatchBtn.addEventListener('click',prepareBatchAndRedirect);
+
+    // 下载模板
+    function downloadTemplate(e){
+      e.preventDefault();
+      const csv='smiles,protein\n'
+      +'"Cc1[nH]nc2ccc(-c3cncc(OCC(N)Cc4ccccc4)c3)cc12",">sp|P31749|AKT1_HUMAN ..."\n'
+      +'"Clc1ccc(Nc2nnc(Cc3ccncc3)c3ccccc23)cc1",">sp|Q13177|PAK2_HUMAN ..."';
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+      const link=document.createElement('a');const url=URL.createObjectURL(blob);
+      link.href=url;link.download='batch_template.csv';document.body.appendChild(link);link.click();document.body.removeChild(link);URL.revokeObjectURL(url);
+    }
+    downloadTemplateBtn.addEventListener('click',downloadTemplate);
+
+    // PubChem / UniProt 查询（3D 显示）
+    searchSmilesBtn.addEventListener('click',()=>fetchMoleculeInfo(smilesInput.value.trim()));
+    searchFastaBtn.addEventListener('click',()=>fetchProteinInfo(targetInput.value.trim()));
+
+    // 分子信息 + 3D
+    async function fetchMoleculeInfo(smiles){
+      if(!smiles){alert('请输入 SMILES 字符串。');return}
+      openModal();
+      modalTitle.textContent='分子信息查询';
+      modalContent.innerHTML=`<div class="modal-loading"><div class="loader mx-auto" style="border-top-color:var(--dark-color)"></div><p class="mt-2">正在从 PubChem 查询...</p></div>`;
+
+      try{
+        const propUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smiles)}/property/IUPACName,MolecularFormula,MolecularWeight/JSON`;
+        const sdfUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smiles)}/SDF?record_type=3d`;
+
+        const [propResp,sdfResp]=await Promise.all([fetch(propUrl),fetch(sdfUrl)]);
+        if(!propResp.ok) throw new Error(`PubChem 属性查询失败 (状态: ${propResp.status})`);
+
+        const props=(await propResp.json()).PropertyTable.Properties[0]||{};
+        modalContent.innerHTML=`
+          <dl class="modal-info-grid">
+            <dt class="font-semibold">IUPAC 名称</dt><dd>${props.IUPACName||'N/A'}</dd>
+            <dt class="font-semibold">分子式</dt><dd>${props.MolecularFormula||'N/A'}</dd>
+            <dt class="font-semibold">分子量</dt><dd>${props.MolecularWeight||'N/A'}</dd>
+            <dt class="font-semibold">PubChem CID</dt><dd>${props.CID||'—'}</dd>
+          </dl>
+          <div id="modalViewerContainer"></div>`;
+
+        const viewerDiv=document.getElementById('modalViewerContainer');
+        if(sdfResp.ok){
+          const sdfData=await sdfResp.text();
+          if(sdfData && !/No 3D conformer available/i.test(sdfData)){
+            const viewer=$3Dmol.createViewer(viewerDiv,{backgroundColor:'white'});
+            viewer.addModel(sdfData,'sdf'); viewer.setStyle({}, {stick:{}}); viewer.zoomTo(); viewer.render();
+          }else{
+            viewerDiv.innerHTML='<div class="flex items-center justify-center h-full bg-gray-50 text-gray-500">无可用 3D 结构</div>';
+          }
+        }else{
+          viewerDiv.innerHTML='<div class="flex items-center justify-center h-full bg-gray-50 text-gray-500">加载 3D 结构失败</div>';
+        }
+      }catch(err){
+        modalContent.innerHTML=`<p class="text-red-600">查询失败: ${err.message}。</p>`;
+      }
+    }
+
+    // 蛋白信息 + 3D
+    async function getProteinDetailsAndStructure(accession){
+      const dataUrl=`https://rest.uniprot.org/uniprotkb/${accession}?fields=protein_name,organism_name,length,sequence`;
+      const resp=await fetch(dataUrl); if(!resp.ok) throw new Error(`UniProt 查询失败 (状态: ${resp.status})`);
+      const data=await resp.json();
+
+      modalContent.innerHTML=`
+        <dl class="modal-info-grid">
+          <dt class="font-semibold">蛋白质名称</dt><dd>${data.proteinDescription?.recommendedName?.fullName?.value||'N/A'}</dd>
+          <dt class="font-semibold">物种</dt><dd>${data.organism?.scientificName||'N/A'}</dd>
+          <dt class="font-semibold">长度</dt><dd>${data.sequence?.length||'N/A'} aa</dd>
+        </dl>
+        <div id="modalViewerContainer"><div class="flex items-center justify-center h-full bg-gray-50 text-gray-500">正在查找 3D 结构...</div></div>`;
+
+      let pdbText=null, srcLabel='';
+      // RCSB PDB
+      try{
+        const s=await fetch('https://search.rcsb.org/rcsbsearch/v2/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:{type:'terminal',service:'text',parameters:{attribute:'rcsb_uniprot_accession.value',operator:'exact_match',value:accession}},return_type:'entry'})});
+        if(s.ok){
+          const j=await s.json();
+          if(j.total_count>0){
+            const pdbId=j.result_set[0].identifier;
+            const f=await fetch(`https://files.rcsb.org/download/${pdbId}.pdb`);
+            if(f.ok){pdbText=await f.text();srcLabel=`PDB (${pdbId})`}
+          }
+        }
+      }catch{}
+
+      // AlphaFold 兜底
+      if(!pdbText){
+        try{
+          const af=await fetch(`https://alphafold.ebi.ac.uk/api/prediction/${accession}`);
+          if(af.ok){
+            const aj=await af.json();
+            if(aj?.[0]?.pdbUrl){
+              const f=await fetch(aj[0].pdbUrl);
+              if(f.ok){pdbText=await f.text();srcLabel='AlphaFold'}
+            }
+          }
+        }catch{}
+      }
+
+      const viewerDiv=document.getElementById('modalViewerContainer');
+      if(pdbText){
+        const viewer=$3Dmol.createViewer(viewerDiv,{backgroundColor:'white'});
+        viewer.addModel(pdbText,'pdb'); viewer.setStyle({}, {cartoon:{color:'spectrum'}}); viewer.zoomTo(); viewer.render();
+        viewer.addLabel(`Source: ${srcLabel}`,{position:{x:0,y:0,z:0},useScreen:true,fontSize:12,fontColor:'black',backgroundOpacity:.3});
+      }else{
+        viewerDiv.innerHTML='<div class="flex items-center justify-center h-full bg-gray-50 text-gray-500">无可用 3D 结构</div>';
+      }
+    }
+
+    async function fetchProteinInfo(fasta){
+      if(!validateFasta(fasta).isValid){alert('请输入有效的 FASTA 格式序列。');return}
+      openModal();
+      modalTitle.textContent='蛋白质信息查询';
+      modalContent.innerHTML=`<div class="modal-loading"><div class="loader mx-auto" style="border-top-color:var(--dark-color)"></div><p class="mt-2">正在从 UniProt 查询...</p></div>`;
+      try{
+        const header=fasta.split(/\r?\n/)[0].substring(1).trim();
+        let acc=null;
+        const m=header.match(/\|([A-Z0-9]{6,})\|/);
+        if(m&&m[1]){acc=m[1]}
+        else{
+          const q=header.replace(/[|_]/g,' ');
+          const url=`https://rest.uniprot.org/uniprotkb/search?query=(${encodeURIComponent(q)})&fields=accession&size=1`;
+          const r=await fetch(url); const j=await r.json();
+          if(!j?.results?.length) throw new Error('UniProt 快速搜索失败');
+          acc=j.results[0].primaryAccession;
+        }
+        await getProteinDetailsAndStructure(acc);
+      }catch(err){
+        modalContent.innerHTML=`<p class="text-red-600">查询失败: ${err.message}</p>`;
+      }
+    }
+
+    // Tooltip
+    document.body.addEventListener('mouseover',function(e){
+      if(e.target.classList.contains('tooltip-icon')){
+        const text=e.target.getAttribute('data-tooltip');let box=document.getElementById('dynamic-tooltip');
+        if(!box){box=document.createElement('div');box.id='dynamic-tooltip';box.className='tooltip-box';document.body.appendChild(box)}
+        box.textContent=text;box.classList.add('visible');
+        const r=e.target.getBoundingClientRect();const tr=box.getBoundingClientRect();
+        let top=r.top-tr.height-10;box.classList.add('on-top');box.classList.remove('on-bottom');
+        if(top<0){top=r.bottom+10;box.classList.remove('on-top');box.classList.add('on-bottom')}
+        let left=r.left+r.width/2-tr.width/2;if(left<0)left=5;if(left+tr.width>window.innerWidth)left=window.innerWidth-tr.width-5;
+        box.style.top=`${top}px`;box.style.left=`${left}px`;
+      }
+    });
+    document.body.addEventListener('mouseout',function(e){
+      if(e.target.classList.contains('tooltip-icon')){const box=document.getElementById('dynamic-tooltip');if(box)box.classList.remove('visible')}
+    });
+  </script>
+</body>
+</html>

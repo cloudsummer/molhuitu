@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预测报告 - 分子慧图</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 原本在线加载的 3Dmol，现注释掉 -->
+    <!-- <script src="https://3Dmol.org/build/3Dmol-min.js"></script> -->
+
+    <!-- ✅ 优先加载本地 3Dmol，失败时自动回退到官方 CDN -->
+    <script src="./3Dmol-min.js"
+        onerror="(function(){var s=document.createElement('script');
+                 s.src='https://3Dmol.org/build/3Dmol-min.js';
+                 document.head.appendChild(s);})();">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg-color: #F8F6F2;
+            --primary-color: #E67E22;
+            --dark-color: #2c2c2c;
+            --text-color: #6c6c6c;
+            --card-bg: #FFFFFF;
+            --border-color: #E5E7EB;
+            --positive-color: #16A34A;
+            --negative-color: #DC2626;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-color);
+            color: var(--dark-color);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        /* Navbar */
+        .navbar { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-color); padding: 1rem 2rem 1rem 0rem; position: sticky; top: 0; width: 100%; z-index: 100; }
+        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { display: flex; align-items: center; gap: 1rem; text-decoration: none; }
+        .nav-logo-img { height: 48px; width: auto; }
+        .nav-menu { display: flex; gap: 2rem; margin-left: 2rem; }
+        .nav-menu a { color: var(--dark-color); text-decoration: none; font-size: 0.95rem; }
+        .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-right a { color: var(--dark-color); text-decoration: none; font-size: 0.95rem; }
+        .nav-register { padding: 0.5rem 1rem; background: #b22c1c; color: #ffffff !important; border-radius: 9999px; text-decoration: none; font-weight: 600; }
+        @media (max-width: 1200px) { .nav-menu { gap: 1.25rem; } }
+        @media (max-width: 1024px) { .nav-menu { display: none; } }
+        
+        /* Main Report Container */
+        .main-container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+        .report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+        .report-title h1 { font-size: 1.75rem; font-weight: 700; }
+        .report-title p { font-size: 0.875rem; color: var(--text-color); margin-top: 0.25rem; }
+        .report-actions { display: flex; gap: 1rem; }
+        .action-button { padding: 0.5rem 1rem; background: var(--dark-color); color: #ffffff; border: none; border-radius: 6px; font-size: 0.875rem; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+        .action-button.secondary { background-color: var(--card-bg); color: var(--dark-color); border: 1px solid var(--border-color); }
+        .action-button.cancel { background-color: #e53e3e; }
+        
+        .report-body { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 2.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07); }
+        .report-section { display: none; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
+        .report-section:not(:last-child) { border-bottom: 1px solid var(--border-color); }
+        .section-title-header { font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; }
+        .loader { width: 32px; height: 32px; border: 3px solid #E5E7EB; border-top: 3px solid var(--text-color); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .results-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+        .results-table th, .results-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .results-table th { font-weight: 500; color: var(--text-color); font-size: 0.875rem; }
+        .results-table td { font-weight: 600; font-size: 1rem; }
+        .results-table tr:last-child td { border-bottom: none; }
+        .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+        .info-block { font-size: 0.9rem; }
+        .info-block-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .info-key-value { display: grid; grid-template-columns: 110px 1fr; gap: 1rem; padding: 0.5rem 0; }
+        .info-key-value dt { font-weight: 500; color: var(--text-color); }
+        .info-key-value dd { word-break: break-all; }
+        .sequence-toggle { color: var(--primary-color); cursor: pointer; font-size: 0.85rem; }
+        figure { margin: 0; }
+        .viewer-container { height: 300px; width: 100%; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 0.5rem; background-color: white; position: relative; }
+        figcaption { text-align: center; font-size: 0.875rem; color: var(--text-color); padding: 0.25rem; }
+        .shap-positive { color: var(--positive-color); font-weight: 600; }
+        .shap-negative { color: var(--negative-color); font-weight: 600; }
+        .summary-stat { font-size: 0.85rem; color: var(--text-color); margin-top: 1rem; padding: 0.5rem; background-color: #f9fafb; border-radius: 4px; }
+        .tooltip { position: relative; display: inline-block; cursor: pointer; }
+        .tooltip .tooltiptext { visibility: hidden; width: 220px; background-color: #555; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -110px; opacity: 0; transition: opacity 0.3s; font-size: 0.8rem; font-weight: 400; }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+        a { color: var(--primary-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        @media (max-width: 768px) { .content-grid { grid-template-columns: 1fr; } }
+        @media print { /* Print styles */ }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="homepage_index.html" class="nav-brand">
+                <img src="文字.png" alt="logo" class="nav-logo-img">
+            </a>
+            <div class="nav-menu">
+                <a href="homepage_index.html#products">产品</a>
+                <a href="homepage_index.html#pricing">定价</a>
+                <a href="homepage_index.html#technology">核心技术架构</a>
+                <a href="homepage_index.html#comparison">超图 vs 传统图</a>
+                <a href="homepage_index.html#applications">应用场景</a>
+                <a href="homepage_index.html#devs">开发者</a>
+                <a href="homepage_index.html#support">支持与服务</a>
+                <a href="homepage_index.html#about">了解我们</a>
+            </div>
+            <div class="nav-right">
+                <i class="fas fa-search nav-search"></i>
+                <a href="homepage_index.html#contact">联系我们</a>
+                <a href="homepage_index.html#docs">文档</a>
+                <a href="history.html"><i class="fas fa-history mr-2"></i>历史记录</a>
+                <a href="homepage_index.html" class="nav-register">退出登录</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container" id="mainContainer">
+        <div class="report-header">
+            <div class="report-title">
+                <h1>药物靶点相互作用预测报告</h1>
+                <p id="reportTimestamp"></p>
+            </div>
+            <div class="report-actions">
+                <!-- ========================================================================= -->
+                <!-- START OF FIX: Added a new "Back to Batch" button, initially hidden      -->
+                <!-- ========================================================================= -->
+                <button id="backToBatchBtn" class="action-button secondary" style="display: none;"><i class="fas fa-arrow-left mr-2"></i>返回批量列表</button>
+                <!-- ========================================================================= -->
+                <!-- END OF FIX                                                              -->
+                <!-- ========================================================================= -->
+                <a href="prediction.html" class="action-button secondary"><i class="fas fa-plus mr-2"></i>新的预测</a>
+                <button id="printBtn" class="action-button" style="display: none;"><i class="fas fa-print mr-2"></i>打印报告</button>
+            </div>
+        </div>
+        
+        <div class="report-body">
+            <div id="taskStatusContainer" class="text-center p-8">
+                <div class="loader mx-auto"></div>
+                <p class="font-semibold text-lg mt-4">正在处理任务...</p>
+                <p class="text-sm text-gray-500" id="statusText">正在初始化...</p>
+                <button id="cancelBtn" class="action-button cancel mt-4"><i class="fas fa-times mr-2"></i>取消任务</button>
+            </div>
+
+            <section id="abstractSection" class="report-section"></section>
+            <section id="keyFindingsSection" class="report-section"></section>
+            <section id="inputsSection" class="report-section"></section>
+            <section id="structuresSection" class="report-section"></section>
+            <section id="explainabilitySection" class="report-section"></section>
+            <section id="rawDataSection" class="report-section"></section>
+        </div>
+    </div>
+    
+    <script>
+        const apiBase = window.location.origin;
+        const POLLING_INTERVAL = 2500;
+        let pollingTimer; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const taskId = urlParams.get('task_id');
+            const source = urlParams.get('source');
+            const statusContainer = document.getElementById('taskStatusContainer');
+            const statusText = document.getElementById('statusText');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const backToBatchBtn = document.getElementById('backToBatchBtn');
+
+            // =========================================================================
+            // START OF FIX: Logic to show the "Back to Batch" button
+            // =========================================================================
+            if (source === 'batch') {
+                backToBatchBtn.style.display = 'inline-flex';
+                backToBatchBtn.addEventListener('click', () => {
+                    history.back();
+                });
+            }
+            // =========================================================================
+            // END OF FIX
+            // =========================================================================
+
+            if (!taskId) {
+                statusContainer.innerHTML = `<div class="text-center p-8"><h2 class="text-2xl font-bold mb-4 text-red-600">错误</h2><p class="text-gray-600">未提供任务ID。请返回预测页面重新提交。</p></div>`;
+                return;
+            }
+
+            statusText.textContent = `任务ID: ${taskId}`;
+            cancelBtn.addEventListener('click', () => cancelTask(taskId));
+
+            const poll = async () => {
+                try {
+                    const response = await fetch(`${apiBase}/api/task_status/${taskId}`);
+                    if (!response.ok) throw new Error(`服务器响应状态: ${response.status}`);
+                    const data = await response.json();
+                    statusText.textContent = `状态: ${data.status}...`;
+
+                    if (data.status === 'SUCCESS') {
+                        clearInterval(pollingTimer);
+                        statusContainer.style.display = 'none';
+                        document.getElementById('reportTimestamp').textContent = `报告生成于: ${new Date().toLocaleString('zh-CN')}`;
+                        document.getElementById('printBtn').style.display = 'flex';
+                        renderSuccess(data.result, taskId);
+                    } else if (data.status === 'FAILURE' || data.status === 'CANCELLED') {
+                        clearInterval(pollingTimer);
+                        renderFailure(data.status, data.error || '任务执行失败或被取消。');
+                    }
+                } catch (err) {
+                    clearInterval(pollingTimer);
+                    renderFailure('ERROR', `轮询任务状态时发生网络错误: ${err.message}`);
+                }
+            };
+
+            pollingTimer = setInterval(poll, POLLING_INTERVAL);
+            poll();
+        });
+
+        async function cancelTask(taskId) {
+            if (!confirm('确定要取消这个正在运行的任务吗？')) return;
+            
+            clearInterval(pollingTimer);
+            document.getElementById('statusText').textContent = '正在取消...';
+            document.getElementById('cancelBtn').disabled = true;
+
+            try {
+                const response = await fetch(`${apiBase}/api/cancel_task/${taskId}`, { method: 'POST' });
+                if (response.ok) {
+                    const data = await response.json();
+                    renderFailure('CANCELLED', data.message || '任务已成功取消。');
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(errorText || `取消请求失败: ${response.statusText}`);
+                }
+            } catch (err) {
+                renderFailure('ERROR', `取消任务时发生错误: ${err.message}`);
+            }
+        }
+
+        function renderSuccess(result, taskId) {
+            document.querySelectorAll('.report-section').forEach(el => el.style.display = 'block');
+            const results = result.output_json;
+            const explanations = result.explanations_json;
+            
+            const fasta = sessionStorage.getItem(`fasta_for_${taskId}`); 
+            
+            renderPredictionResults(results, explanations);
+            renderInputParameters(explanations, fasta);
+            render3DStructures(explanations, fasta);
+            renderExplainability(results.viz, explanations);
+            document.getElementById('rawDataSection').innerHTML = `<h2 class="section-title-header">原始数据 <span>(Raw Data)</span></h2><pre class="bg-gray-800 text-white p-4 rounded-md text-xs overflow-auto">${JSON.stringify(result, null, 2)}</pre>`;
+        }
+
+        function renderFailure(status, errorMsg) {
+            const statusContainer = document.getElementById('taskStatusContainer');
+            let title = '任务失败';
+            if (status === 'CANCELLED') title = '任务已取消';
+            statusContainer.innerHTML = `<div class="text-center p-8"><h2 class="text-2xl font-bold mb-4 text-red-600">${title}</h2><p class="text-gray-600">${errorMsg}</p></div>`;
+        }
+        
+        function renderPredictionResults(results, explanations) {
+            const abstractSection = document.getElementById('abstractSection');
+            const keyFindingsSection = document.getElementById('keyFindingsSection');
+            
+            const pKd = results?.affinity;
+            const likelihood = results?.binding_likelihood;
+            const decision = results?.decision;
+            const deltaG = pKd != null ? -1.36 * pKd : null;
+
+            let abstractText = `本次预测旨在评估指定药物分子与蛋白质靶点之间的相互作用潜力。`;
+            if (pKd != null) abstractText += `模型预测的理论结合亲和力 (pKd) 为 <strong>${pKd.toFixed(2)}</strong>。`;
+            if (likelihood != null) abstractText += `模型预测的结合可能性为 <strong>${(likelihood * 100).toFixed(1)}%</strong>。`;
+            if (explanations?.atoms?.top_contributions?.[0]) abstractText += ` 主要贡献原子为 ${explanations.atoms.top_contributions[0].symbol}${explanations.atoms.top_contributions[0].idx}。`;
+            if (explanations?.residues?.top_contributions?.[0]) abstractText += ` 主要贡献残基为 ${explanations.residues.top_contributions[0].aa}${explanations.residues.top_contributions[0].pos}。`;
+            
+            abstractSection.innerHTML = `<h2 class="section-title-header">摘要 <span>(Abstract)</span></h2><p>${abstractText}</p>`;
+            
+            let tableHTML = `<table class="results-table"><tbody>`;
+            if (likelihood != null) tableHTML += `<tr><th>结合可能性</th><td>${(likelihood * 100).toFixed(1)} %</td></tr>`;
+            if (decision != null) tableHTML += `<tr><th>相互作用判定</th><td>${decision === 1 ? '是 (Binding)' : '否 (Non-binding)'}</td></tr>`;
+            if (pKd != null) tableHTML += `<tr><th>结合亲和力 (pKd)</th><td>${pKd.toFixed(2)}</td></tr>`;
+            if (deltaG != null) tableHTML += `<tr><th>结合自由能 (ΔG)</th><td>${deltaG.toFixed(2)} kcal/mol</td></tr>`;
+            tableHTML += `</tbody></table>`;
+            keyFindingsSection.innerHTML = `<h2 class="section-title-header">关键结果 <span>(Key Findings)</span></h2>${tableHTML}`;
+        }
+
+        async function renderInputParameters(explanations, fasta) {
+            const section = document.getElementById('inputsSection');
+            const atomEx = explanations?.atoms;
+            const residueEx = explanations?.residues;
+            const header = fasta ? fasta.split(/\r?\n/)[0] : '>N/A';
+            
+            let moleculeHTML = `<div id="moleculeInfo" class="info-block"><h4 class="info-block-title">药物分子 (SMILES)</h4>`;
+            if (atomEx) {
+                moleculeHTML += `<div class="info-details-wrapper"><div class="info-key-value"><dt>SMILES</dt><dd class="font-mono text-sm">${atomEx.smiles}</dd></div><div class="info-key-value"><dt>Num. Atoms</dt><dd>${atomEx.num_nodes}</dd></div></div>`;
+            } else { moleculeHTML += `<p class="text-sm text-gray-500">无分子输入数据。</p>`; }
+            moleculeHTML += `</div>`;
+
+            let proteinHTML = `<div id="proteinInfo" class="info-block"><h4 class="info-block-title">蛋白质靶点 (FASTA)</h4>`;
+            if (residueEx && fasta) {
+                const sequence = residueEx.sequence;
+                const sequenceHTML = sequence.length > 100 
+                    ? `<span id="seq-short">${sequence.substring(0, 100)}... <a id="seq-toggle" class="sequence-toggle">显示全部</a></span><span id="seq-full" style="display:none;">${sequence} <a id="seq-toggle-hide" class="sequence-toggle">收起</a></span>` 
+                    : sequence;
+                proteinHTML += `<div class="info-details-wrapper"><div class="info-key-value"><dt>Header</dt><dd class="font-mono text-sm">${header}</dd></div><div class="info-key-value"><dt>Num. Residues</dt><dd>${residueEx.num_tokens}</dd></div><div class="info-key-value" style="display: block;"><dt style="margin-bottom: 0.5rem;">Sequence</dt><dd class="font-mono text-sm">${sequenceHTML}</dd></div></div>`;
+            } else { proteinHTML += `<p class="text-sm text-gray-500">无蛋白质输入数据。</p>`; }
+            proteinHTML += `</div>`;
+            
+            section.innerHTML = `<h2 class="section-title-header">输入参数 <span>(Input Parameters)</span></h2><div class="content-grid">${moleculeHTML}${proteinHTML}</div>`;
+            
+            const seqToggle = document.getElementById('seq-toggle');
+            if (seqToggle) { 
+                seqToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('seq-short').style.display = 'none';
+                    document.getElementById('seq-full').style.display = 'inline';
+                });
+                document.getElementById('seq-toggle-hide').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('seq-short').style.display = 'inline';
+                    document.getElementById('seq-full').style.display = 'none';
+                });
+            }
+        }
+
+        async function render3DStructures(explanations, fasta) {
+            const section = document.getElementById('structuresSection');
+            let moleculeHTML = `<div id="moleculeStructure"></div>`;
+            let proteinHTML = `<div id="proteinStructure"></div>`;
+            section.innerHTML = `<h2 class="section-title-header">三维结构 <span>(3D Structures)</span></h2><div class="content-grid">${moleculeHTML}${proteinHTML}</div>`;
+            
+            if (explanations?.atoms?.smiles) {
+                const sdfURL = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(explanations.atoms.smiles)}/SDF?record_type=3d`;
+                try {
+                    const sdfResponse = await fetch(sdfURL);
+                    const sdfData = await sdfResponse.text();
+                    if (sdfData && !sdfData.includes("No 3D conformer available")) {
+                        document.getElementById('moleculeStructure').innerHTML = `<figure><div id="molViewerContainer" class="viewer-container"></div><figcaption>Figure 1: 药物分子的三维构象</figcaption></figure>`;
+                        let viewer = $3Dmol.createViewer(document.getElementById('molViewerContainer'), { backgroundColor: 'white' });
+                        viewer.addModel(sdfData, 'sdf'); viewer.setStyle({}, {stick: {}}); viewer.zoomTo(); viewer.render();
+                    } else { throw new Error(); }
+                } catch { document.getElementById('moleculeStructure').innerHTML = `<figure><div class="viewer-container flex items-center justify-center bg-gray-50"><p class="text-gray-500 text-sm">无可用3D结构</p></div></figure>`; }
+            }
+
+            if (fasta) {
+                 try {
+                    const header = fasta.split(/\r?\n/)[0];
+                    const idMatch = header.match(/\|([A-Z0-9]{6,})\|/);
+                    let accession;
+                    if (idMatch && idMatch[1]) {
+                        accession = idMatch[1];
+                    } else {
+                        const query = header.substring(1).trim().replace(/[|_]/g, ' ');
+                        const response = await fetch(`https://rest.uniprot.org/uniprotkb/search?query=(${encodeURIComponent(query)})&fields=accession&size=1`);
+                        const data = await response.json();
+                        if (!data?.results?.length) throw new Error(`UniProt ID not found.`);
+                        accession = data.results[0].primaryAccession;
+                    }
+                    
+                    let structureSource = { type: null, id: null, data: null };
+                    const pdbSearchResponse = await fetch('https://search.rcsb.org/rcsbsearch/v2/query', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: { type: "terminal", service: "text", parameters: { attribute: "rcsb_uniprot_accession.value", operator: "exact_match", value: accession } }, return_type: "entry" }) });
+                    if (pdbSearchResponse.ok) {
+                        const searchResult = await pdbSearchResponse.json();
+                        if (searchResult.total_count > 0) {
+                            const pdbId = searchResult.result_set[0].identifier;
+                            const pdbFileResponse = await fetch(`https://files.rcsb.org/download/${pdbId}.pdb`);
+                            if (pdbFileResponse.ok) structureSource = { type: 'PDB', id: pdbId, data: await pdbFileResponse.text() };
+                        }
+                    }
+                    if (!structureSource.data) {
+                        const afApiResponse = await fetch(`https://alphafold.ebi.ac.uk/api/prediction/${accession}`);
+                        if (afApiResponse.ok) {
+                            const afApiData = await afApiResponse.json();
+                            if (afApiData?.[0]?.pdbUrl) {
+                                const afPdbResponse = await fetch(afApiData[0].pdbUrl);
+                                if (afPdbResponse.ok) structureSource = { type: 'AlphaFold', id: accession, data: await afPdbResponse.text() };
+                            }
+                        }
+                    }
+
+                    if (structureSource.data) {
+                        document.getElementById('proteinStructure').innerHTML = `<figure><div id="proteinViewerContainer" class="viewer-container"></div><figcaption>Figure 2: 蛋白质三维结构 (${structureSource.type})</figcaption></figure>`;
+                        let viewer = $3Dmol.createViewer(document.getElementById('proteinViewerContainer'), { backgroundColor: 'white' });
+                        viewer.addModel(structureSource.data, 'pdb'); viewer.setStyle({}, { cartoon: { color: 'spectrum' } }); viewer.zoomTo(); viewer.render();
+                    } else { throw new Error(); }
+                } catch { document.getElementById('proteinStructure').innerHTML = `<figure><div class="viewer-container flex items-center justify-center bg-gray-50"><p class="text-gray-500 text-sm">无可用3D结构</p></div></figure>`;}
+            }
+        }
+
+        function renderExplainability(viz, explanations) {
+            const container = document.getElementById('explainabilitySection');
+            if (!explanations) {
+                container.innerHTML = `<h2 class="section-title-header">可解释性分析 <span>(Explainability Analysis)</span></h2><p class="text-sm text-gray-500">未请求可解释性分析。</p>`;
+                return;
+            }
+
+            let html = `<h2 class="section-title-header">可解释性分析 <span>(Explainability Analysis)</span></h2>`;
+            let atomHTML = '', residueHTML = '';
+
+            const atomEx = explanations.atoms;
+            if (atomEx) {
+                atomHTML = `<div class="info-block"><h4 class="info-block-title">药物原子贡献 (SHAP)</h4>`;
+                if (viz?.atoms?.png_url) {
+                    const fullUrl = new URL(viz.atoms.png_url, apiBase).toString();
+                    atomHTML += `<figure><img src="${fullUrl}" alt="Atom Contribution Heatmap" class="w-full h-auto border rounded-md"><figcaption>Figure 3: 原子贡献热图 (SHAP)</figcaption></figure>`;
+                }
+                if (atomEx.top_contributions?.length > 0) {
+                    atomHTML += '<table class="results-table contribution-table mt-4"><thead><tr><th>原子</th><th>索引</th><th>贡献值(SHAP)</th></tr></thead><tbody>';
+                    atomEx.top_contributions.forEach(item => {
+                        const shapClass = item.shap >= 0 ? 'shap-positive' : 'shap-negative';
+                        atomHTML += `<tr><td>${item.symbol}</td><td>${item.idx}</td><td class="${shapClass}">${item.shap.toFixed(4)}</td></tr>`;
+                    });
+                    atomHTML += '</tbody></table>';
+                }
+                if (atomEx.additivity_check?.gap != null) {
+                    atomHTML += `<div class="summary-stat">Additivity Check Gap: <strong>${atomEx.additivity_check.gap.toExponential(2)}</strong> <div class="tooltip"><i class="fas fa-info-circle text-gray-400 ml-1"></i><span class="tooltiptext">此值衡量SHAP解释的可靠性。值越接近零，表示解释越准确。</span></div></div>`;
+                }
+                atomHTML += '</div>';
+            }
+
+            const residueEx = explanations.residues;
+            if (residueEx) {
+                residueHTML = `<div class="info-block"><h4 class="info-block-title">蛋白质残基贡献 (${residueEx.method || 'Analysis'})</h4>`;
+                if (residueEx.weights && residueEx.sequence) {
+                    residueHTML += `<figure><canvas id="residueChart"></canvas><figcaption>Figure 4: 残基贡献条形图</figcaption></figure>`;
+                }
+                if (residueEx.top_contributions?.length > 0) {
+                    residueHTML += '<table class="results-table contribution-table mt-4"><thead><tr><th>残基</th><th>位置</th><th>贡献值</th></tr></thead><tbody>';
+                    residueEx.top_contributions.forEach(item => {
+                        const shapClass = item.shap >= 0 ? 'shap-positive' : 'shap-negative';
+                        residueHTML += `<tr><td>${item.aa}</td><td>${item.pos}</td><td class="${shapClass}">${item.shap.toFixed(4)}</td></tr>`;
+                    });
+                    residueHTML += '</tbody></table>';
+                }
+                residueHTML += '</div>';
+            }
+
+            container.innerHTML = `<div class="content-grid">${atomHTML}${residueHTML}</div>`;
+            
+            if (residueEx && document.getElementById('residueChart')) {
+                const ctx = document.getElementById('residueChart').getContext('2d');
+                const weights = residueEx.weights;
+                const labels = residueEx.sequence.split('').map((aa, i) => `${aa}${i+1}`);
+                const bgColors = weights.map(w => w >= 0 ? 'rgba(22, 163, 74, 0.6)' : 'rgba(220, 38, 38, 0.6)');
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: labels, datasets: [{ label: '贡献值', data: weights, backgroundColor: bgColors }] },
+                    options: { scales: { x: { display: weights.length <= 50 }, y: { beginAtZero: false, title: { display: true, text: '贡献值' } } }, plugins: { legend: { display: false } } }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!doctype html>
+<meta charset="utf-8"><title>pred_debug</title>
+<body>
+  <h1>pred_debug loaded</h1>
+  <div id="log" style="white-space:pre-wrap;"></div>
+  <script>
+    const log=(...a)=>{document.querySelector('#log').textContent+=a.join(' ')+'\n'};
+    window.onerror=(m,src,l,c)=>log('[onerror]',m,'@',src,l+':'+c);
+    const _c=console.log; console.log=(...a)=>{log('[console]',...a); _c.apply(console,a)};
+    log('readyState=',document.readyState);
+  </script>
+</body>

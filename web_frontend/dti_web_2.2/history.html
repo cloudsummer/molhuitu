@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史记录 - 分子慧图</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root { --bg-color: #F8F6F2; --primary-color: #E67E22; --dark-color: #2c2c2c; --text-color: #6c6c6c; --card-bg: #FFFFFF; --border-color: #E5E7EB; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--dark-color); }
+        .navbar { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-color); padding: 1rem 2rem 1rem 0rem; position: sticky; top: 0; width: 100%; z-index: 100; }
+        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { display: flex; align-items: center; gap: 1rem; text-decoration: none; }
+        .nav-logo-img { height: 48px; width: auto; }
+        .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-right a { color: var(--dark-color); text-decoration: none; font-size: 0.95rem; }
+        .nav-register { padding: 0.5rem 1rem; background: #b22c1c; color: #ffffff !important; border-radius: 9999px; text-decoration: none; font-weight: 600; }
+        .main-container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 1.75rem; font-weight: 700; }
+        .action-button { display: inline-flex; align-items: center; padding: 0.5rem 1rem; background: var(--dark-color); color: #ffffff; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.875rem;}
+        .action-button.secondary { background-color: var(--card-bg); color: var(--dark-color); border: 1px solid var(--border-color); }
+        .action-button.danger { background-color: #ef4444; }
+        .history-table-container { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table th, .history-table td { padding: 1rem 1.5rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .history-table th { font-size: 0.8rem; font-weight: 600; color: var(--text-color); text-transform: uppercase; }
+        .history-table td { font-size: 0.9rem; vertical-align: middle; }
+        .task-id { font-family: 'Courier New', monospace; font-size: 0.85rem; }
+        .smiles-cell { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        /* Full Navbar styles for consistency */
+        .nav-menu { display: flex; gap: 2rem; margin-left: 2rem; }
+        .nav-menu a { color: var(--dark-color); text-decoration: none; font-size: 0.95rem; }
+        @media (max-width: 1200px) { .nav-menu { gap: 1.25rem; } }
+        @media (max-width: 1024px) { .nav-menu { display: none; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+           <a href="homepage_index.html" class="nav-brand">
+               <img src="文字.png" alt="logo" class="nav-logo-img">
+           </a>
+           <div class="nav-menu">
+                <a href="homepage_index.html#products">产品</a>
+                <a href="homepage_index.html#pricing">定价</a>
+                <a href="homepage_index.html#technology">核心技术架构</a>
+                <a href="homepage_index.html#comparison">超图 vs 传统图</a>
+                <a href="homepage_index.html#applications">应用场景</a>
+                <a href="homepage_index.html#devs">开发者</a>
+                <a href="homepage_index.html#support">支持与服务</a>
+                <a href="homepage_index.html#about">了解我们</a>
+            </div>
+           <div class="nav-right">
+                <i class="fas fa-search nav-search"></i>
+                <a href="homepage_index.html#contact">联系我们</a>
+                <a href="homepage_index.html#docs">文档</a>
+                <a href="history.html"><i class="fas fa-history mr-2"></i>历史记录</a>
+                <a href="homepage_index.html" class="nav-register">退出登录</a>
+           </div>
+       </div>
+   </nav>
+
+    <div class="main-container">
+        <div class="header">
+            <h1>历史记录</h1>
+            <div class="flex items-center gap-4">
+                <a href="prediction.html" class="action-button secondary"><i class="fas fa-plus mr-2"></i>新的预测</a>
+                <button id="clearHistoryBtn" class="action-button danger"><i class="fas fa-trash mr-2"></i>清空历史记录</button>
+            </div>
+        </div>
+        <div class="history-table-container">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>提交时间</th>
+                        <th>任务ID</th>
+                        <th>SMILES</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <!-- Rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const historyTableBody = document.getElementById('historyTableBody');
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+            function getHistory() {
+                const historyJSON = localStorage.getItem('predictionHistory');
+                return historyJSON ? JSON.parse(historyJSON) : [];
+            }
+
+            function renderHistory() {
+                const history = getHistory().sort((a, b) => new Date(b.submissionTime) - new Date(a.submissionTime));
+                historyTableBody.innerHTML = '';
+
+                if (history.length === 0) {
+                    historyTableBody.innerHTML = '<tr><td colspan="4" class="text-center p-8 text-gray-500">没有历史记录。</td></tr>';
+                    return;
+                }
+
+                history.forEach(task => {
+                    const row = document.createElement('tr');
+                    
+                    const safeFasta = task.fasta.replace(/'/g, "\\'").replace(/\r?\n/g, '\\n');
+                    const viewReportLink = `<a href="results.html?task_id=${task.taskId}" class="text-blue-600 hover:underline font-semibold" onclick="sessionStorage.setItem('fasta_for_${task.taskId}', '${safeFasta}')">查看报告</a>`;
+
+                    row.innerHTML = `
+                        <td>${new Date(task.submissionTime).toLocaleString('zh-CN')}</td>
+                        <td class="task-id">${task.taskId}</td>
+                        <td class="smiles-cell" title="${task.smiles}">${task.smiles}</td>
+                        <td>${viewReportLink}</td>
+                    `;
+                    historyTableBody.appendChild(row);
+                });
+            }
+
+            clearHistoryBtn.addEventListener('click', () => {
+                if (confirm('确定要清空所有历史记录吗？此操作不可恢复。')) {
+                    localStorage.removeItem('predictionHistory');
+                    renderHistory();
+                }
+            });
+
+            renderHistory();
+        });
+    </script>
+</body>
+</html>

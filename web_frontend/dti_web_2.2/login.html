@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分子慧图 - 欢迎回来</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg-color: #F8F6F2;
+            --primary-color: #E67E22;
+            --primary-color-light: rgba(230, 126, 34, 0.1);
+            --primary-color-dark: #d35400;
+            --dark-color: #2c2c2c;
+            --text-color: #6c6c6c;
+            --input-bg: #FFFFFF;
+            --input-border: #e8e6e3;
+            --molecule-color: #D37844;
+            --card-bg: #FFFFFF;
+            --border-color: #e8e6e3;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-color);
+            color: var(--dark-color);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Enhanced Background Animation */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #f8f6f2, #fdfbf9, #f5f3f0, #f8f6f2);
+            background-size: 300% 300%;
+            animation: gradient-flow 25s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 100% 0%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .right-panel {
+                display: none;
+            }
+        }
+
+        @keyframes slideFadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideUpFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            animation: slideFadeIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+
+        .left-panel { 
+            animation-delay: 0.1s; 
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .right-panel { 
+            animation-delay: 0.2s; 
+        }
+        
+        .login-box {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(230, 126, 34, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-color-dark));
+        }
+
+        .form-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+        
+        .register-link {
+            font-size: 1rem;
+            color: var(--text-color);
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .register-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .register-link a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        .register-link a:hover::after {
+            width: 100%;
+        }
+        .register-link a:hover { 
+            color: var(--primary-color-dark); 
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--dark-color);
+        }
+
+        .input-icon {
+            position: absolute;
+            top: 50%;
+            left: 1.25rem;
+            transform: translateY(-50%);
+            color: var(--text-color);
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3.5rem;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            outline: none;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .form-input:focus {
+            box-shadow: 0 0 0 4px var(--primary-color-light);
+            border-color: var(--primary-color);
+            background-color: var(--input-bg);
+            transform: translateY(-2px);
+        }
+        
+        .form-input:focus + .input-icon {
+            color: var(--primary-color);
+        }
+        
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        .checkbox-label input { 
+            margin-right: 0.75rem; 
+            transform: scale(1.2);
+        }
+        
+        .help-link {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+        }
+        .help-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        .help-link:hover::after {
+            width: 100%;
+        }
+        .help-link:hover { 
+            color: var(--primary-color); 
+        }
+        
+        .submit-button {
+            width: 100%;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, var(--dark-color) 0%, #1a1a1a 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .submit-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .submit-button:hover::before {
+            left: 100%;
+        }
+        
+        .submit-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.25);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+        }
+
+        .right-panel-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 2rem;
+        }
+
+        .slogan-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 5rem;
+            max-width: 450px;
+            line-height: 1.6;
+            min-height: 120px;
+            background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slogan-text::after {
+            content: '|';
+            animation: blink 1s infinite;
+            margin-left: 3px;
+            color: var(--primary-color);
+        }
+
+        @keyframes blink { 
+            0%, 50% { opacity: 1; } 
+            51%, 100% { opacity: 0; } 
+        }
+        
+        .header-logo {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            height: 160px;
+            z-index: 1000;
+            animation: slideUpFadeIn 0.8s ease-out 0.3s both;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+        }
+
+        /* Enhanced SVG Animation Styles */
+        .molecule-container {
+            width: 450px;
+            height: 350px;
+            animation: slideFadeIn 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1s both;
+            position: relative;
+        }
+
+        .animated-node {
+            fill: var(--molecule-color);
+            transform-origin: center;
+            opacity: 0;
+            animation: pop-in 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+            filter: drop-shadow(0 2px 8px rgba(211, 120, 68, 0.3));
+        }
+
+        .animated-line {
+            stroke: var(--molecule-color);
+            stroke-width: 6px;
+            stroke-linecap: round;
+            animation: draw-line 1s ease-out forwards;
+            filter: drop-shadow(0 1px 4px rgba(211, 120, 68, 0.2));
+        }
+
+        @keyframes pop-in {
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes draw-line {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <img src="logo3.svg" alt="分子慧图" class="header-logo">
+    
+    <div class="container">
+        <div class="panel left-panel">
+            <div class="login-box">
+                <h1 class="form-title">欢迎回来</h1>
+                <p class="register-link">还没有账号？ <a href="#">立即注册</a></p>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label">用户名</label>
+                        <div class="relative">
+                            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></span>
+                            <input type="text" id="username" class="form-input" placeholder="请输入您的用户名" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">密码</label>
+                        <div class="relative">
+                            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>
+                            <input type="password" id="password" class="form-input" placeholder="请输入您的密码" required>
+                        </div>
+                    </div>
+                    <div class="form-options">
+                        <label class="checkbox-label"><input type="checkbox" id="remember"><span>记住我</span></label>
+                        <a href="#" class="help-link" id="helpBtn">获取演示账号</a>
+                    </div>
+                    <button type="submit" class="submit-button">登录</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="panel right-panel">
+            <div class="right-panel-content">
+                <p class="slogan-text" id="typewriter"></p>
+                <div id="molecule-container" class="molecule-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Login Logic (Unchanged) ---
+        const DEMO_USERS = [{ username: 'admin', password: 'Dtp@2025!' }, { username: 'demo', password: 'demo1234' }];
+        const TARGET_FILE = 'prediction.html';
+        const elements = { username: document.getElementById('username'), password: document.getElementById('password'), helpBtn: document.getElementById('helpBtn'), loginForm: document.getElementById('loginForm') };
+        elements.helpBtn.addEventListener('click', (e) => { e.preventDefault(); alert(`演示账号:\n用户名: admin | 密码: Dtp@2025!`); elements.username.value = 'admin'; elements.password.value = 'Dtp@2025!'; });
+        elements.loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = elements.username.value.trim();
+            const password = elements.password.value;
+            if (!username || !password) return alert('请输入用户名和密码');
+            if (DEMO_USERS.some(user => user.username === username && user.password === password)) {
+                alert(`登录成功！欢迎 ${username}，即将跳转到预测平台...`);
+                window.location.href = TARGET_FILE;
+            } else {
+                alert('用户名或密码错误，请检查后重试');
+            }
+        });
+
+        // --- Visual Effects ---
+        function typeWriter() {
+            const text = '洞见分子间的"引力"，\n加速新药的诞生';
+            const typewriterElement = document.getElementById('typewriter');
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    typewriterElement.innerHTML += text.charAt(i) === '\n' ? '<br>' : text.charAt(i);
+                    i++;
+                    setTimeout(type, 100);
+                }
+            }
+            setTimeout(type, 1000);
+        }
+
+        // --- SVG-based Molecule Animation ---
+        function createMolecule() {
+            const container = document.getElementById('molecule-container');
+            if (!container) return;
+
+            const SVG_NS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(SVG_NS, "svg");
+            const VIEWBOX_SIZE = 400;
+            svg.setAttribute("viewBox", `0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`);
+
+            const nodes = [
+                { id: 0, x: 200, y: 150, r: 20 }, // Center
+                { id: 1, x: 80, y: 70, r: 12 },
+                { id: 2, x: 320, y: 90, r: 12 },
+                { id: 3, x: 340, y: 240, r: 12 },
+                { id: 4, x: 180, y: 280, r: 12 },
+                { id: 5, x: 60, y: 210, r: 12 },
+                { id: 6, x: 280, y: 45, r: 12 }
+            ];
+            const connections = [ 
+                [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6]
+            ];
+
+            const defs = document.createElementNS(SVG_NS, "defs");
+            const filter = document.createElementNS(SVG_NS, "filter");
+            filter.setAttribute("id", "glow");
+            filter.innerHTML = `<feGaussianBlur stdDeviation="3.5" result="coloredBlur" /><feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>`;
+            defs.appendChild(filter);
+            svg.appendChild(defs);
+
+            const linesGroup = document.createElementNS(SVG_NS, "g");
+            const nodesGroup = document.createElementNS(SVG_NS, "g");
+            nodesGroup.setAttribute("filter", "url(#glow)");
+
+            connections.forEach((conn, index) => {
+                const startNode = nodes.find(n => n.id === conn[0]);
+                const endNode = nodes.find(n => n.id === conn[1]);
+
+                const line = document.createElementNS(SVG_NS, "line");
+                line.setAttribute("x1", startNode.x);
+                line.setAttribute("y1", startNode.y);
+                line.setAttribute("x2", endNode.x);
+                line.setAttribute("y2", endNode.y);
+                
+                const length = Math.hypot(endNode.x - startNode.x, endNode.y - startNode.y);
+                line.setAttribute("stroke-dasharray", length);
+                line.setAttribute("stroke-dashoffset", length);
+                
+                line.style.animationDelay = `${1.2 + index * 0.15}s`;
+                line.classList.add("animated-line");
+                linesGroup.appendChild(line);
+            });
+
+            nodes.forEach((node, index) => {
+                const circle = document.createElementNS(SVG_NS, "circle");
+                circle.setAttribute("cx", node.x);
+                circle.setAttribute("cy", node.y);
+                circle.setAttribute("r", node.r);
+                circle.style.transform = `scale(0)`;
+                circle.style.animationDelay = `${0.8 + index * 0.1}s`;
+                circle.classList.add("animated-node");
+                nodesGroup.appendChild(circle);
+            });
+
+            svg.appendChild(linesGroup);
+            svg.appendChild(nodesGroup);
+            
+            container.appendChild(svg);
+        }
+
+        window.addEventListener('load', () => {
+            typeWriter();
+            createMolecule();
+        });
+    </script>
+</body>
+</html>
