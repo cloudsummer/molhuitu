@@ -303,10 +303,14 @@ sudo systemctl status molhuitu --no-pager
 
 ## 16. License & Usage
 
-Demo-Only · Non-Commercial · No Derivatives
-本项目仅供演示/学术评估。禁止任何商业使用、SaaS 托管、二次分发、修改与衍生。如需合作或授权，请邮件联系：
-	•	Email: hsiayun@foxmail.com；xiayun@cpu.edu.cn
-	•	商业试点、部署支持、联合研究等须签订正式合作协议。
+> **Demo-Only · Non-Commercial · No Derivatives**  
+> This project is provided **for demonstration and academic evaluation only**.  
+> **Commercial use, SaaS hosting, redistribution, modification, or derivative works are strictly prohibited.**  
+>  
+> For collaboration or licensing inquiries, please contact:  
+> • Email: **hsiayun@foxmail.com** / **xiayun@cpu.edu.cn**  
+>  
+> Commercial pilot programs, deployment support, or joint research **require a formal collaboration agreement**.
   
 ## 17. Acknowledgements & Citation
 
