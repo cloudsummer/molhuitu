@@ -123,7 +123,7 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y git
 
 # 1) Clone
-git clone https://github.com/yourusername/molhuitu.git
+git clone https://github.com/cloudsummer/molhuitu.git
 cd molhuitu
 
 # 2) Conda env (Python 3.10)
