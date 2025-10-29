@@ -1,5 +1,379 @@
 # 🧬 MolHuiTu — Molecular HyperGraph V8.1
-### Intelligent Drug–Target Interaction (DTI) Prediction Platform
+**Intelligent Drug–Target Interaction (DTI) Prediction Platform**
+
+> _A next-generation, GPU-accelerated DTI system that fuses **hypergraph** molecular encoders, **protein language models** (ProtBert), rich **explainability**, and a sleek web UI._
+
+<p align="center">
+  <img width="100%" alt="MolHuiTu Overview" src="https://github.com/user-attachments/assets/0bf60f5b-a63f-4708-9910-d043bc655497" />
+</p>
+
+---
+
+## 🗂️ Table of Contents
+- [1. Overview](#1-overview)
+- [2. Feature Highlights](#2-feature-highlights)
+- [3. Gallery](#3-gallery)
+- [4. Architecture](#4-architecture)
+- [5. Prerequisites](#5-prerequisites)
+- [6. Installation (Ubuntu 24.04 + Conda + RTX 4090)](#6-installation-ubuntu-2404--conda--rtx-4090)
+- [7. Repository Layout](#7-repository-layout)
+- [8. Quick Start](#8-quick-start)
+- [9. CLI — Single & Batch Prediction](#9-cli--single--batch-prediction)
+- [10. Explainability (Technical)](#10-explainability-technical)
+- [11. 3D Viewer & Offline/CDN Fallback](#11-3d-viewer--offlinecdn-fallback)
+- [12. Performance Tips](#12-performance-tips)
+- [13. Run as a Service (systemd)](#13-run-as-a-service-systemd)
+- [14. Troubleshooting](#14-troubleshooting)
+- [15. Security & Production Notes](#15-security--production-notes)
+- [16. License](#16-license)
+- [17. Acknowledgements](#17-acknowledgements)
+
+---
+
+## 1. Overview
+**MolHuiTu** (Molecular Intelligence Graph) predicts drug–target interactions from a **SMILES** (ligand) and a **FASTA** (protein). It returns a calibrated score and **explains** the prediction by highlighting key **atoms** and **residues**. The web UI includes **interactive 3D visualization**, batch job management, and downloadable reports.
+
+---
+
+## 2. Feature Highlights
+- **Hypergraph Molecular Encoder** — Captures multi-body patterns (rings, functional groups, H-bonds) beyond pairwise bonds via **hyperedges** and a masked-autoencoder pretrain; improves modeling of complex chemistry.
+- **Protein Language Model (ProtBert)** — Transformer embeddings of amino-acid sequences (mean/CLS pooling), fused with ligand embeddings for robust DTI scoring.
+- **End-to-End Inference** — Single query and high-throughput **batch CSV** screening; optional probability calibration.
+- **Integrated Explainability** — **Atom-level SHAP** and **residue-level occlusion** with **Top-K** contributors and a consistency check.
+- **One-Stop Context** — Hooks for PubChem / UniProt / AlphaFold / RCSB PDB to enrich reports and drive **3Dmol.js** visualization.
+- **Practical UX** — Clean web UI, job history, CSV export, and report pages; GPU-optimized backend validated on **NVIDIA RTX 4090**.
+
+> _Traditional graph vs hypergraph_: a simple graph restricts bonds to pairs; **MolHuiTu** uses **hyperedges** to connect any number of atoms so functional motifs are represented natively.
+
+---
+
+## 3. Gallery
+
+### 🏠 Home (Frontend)
+<img width="3172" height="1582" alt="Home" src="https://github.com/user-attachments/assets/185000bc-4b54-4178-81e6-f7050db1f3cf" />
+
+### 🔬 DTI Prediction UI
+<img width="2814" height="1492" alt="DTI UI" src="https://github.com/user-attachments/assets/b400ecd4-d50b-4c79-9718-c95243c61ac3" />
+
+### 🧾 Single Prediction — Form
+<img width="2646" height="1404" alt="Single Form" src="https://github.com/user-attachments/assets/45176290-8fe9-4349-95f0-428bec62b5da" />
+
+### ⏳ Single Prediction — In Progress
+<img width="2248" height="868" alt="Single In Progress" src="https://github.com/user-attachments/assets/f356af59-b01f-4e61-84ba-44877d8b384f" />
+
+### 📤 Batch Submission
+<img width="1416" height="394" alt="Batch Submit" src="https://github.com/user-attachments/assets/1a96e41f-dd1a-4231-8f16-be7045243fd4" />
+
+### 📊 Batch Dashboard — Completed
+<img width="2920" height="752" alt="Batch Completed" src="https://github.com/user-attachments/assets/371e45a6-ef83-43d2-a9b2-6675680ccb30" />
+
+### 📑 Report — Part 1
+<img width="2870" height="1250" alt="Report 1" src="https://github.com/user-attachments/assets/73de69af-97b0-49d7-a709-ba364b5899c9" />
+
+### 📑 Report — Part 2
+<img width="1064" height="568" alt="Report 2" src="https://github.com/user-attachments/assets/914e7efe-a150-4e7d-8411-cf0d78e0cb7e" />
+
+### 📈 Runtime Monitoring (CPU & GPU)
+<img width="2026" height="600" alt="CPU htop" src="https://github.com/user-attachments/assets/184e0fc4-4d8a-498f-a039-9d8e0f3e7b99" />
+<img width="594" height="288" alt="GPU nvidia-smi" src="https://github.com/user-attachments/assets/af0e8d3c-aad1-43c9-951c-e161d0fac141" />
+
+---
+
+## 4. Architecture
+- **Drug Encoder — HyperGraph-MAE**  
+  Represent molecules as **hypergraphs** (nodes=atoms; hyperedges=rings/groups/relations). Pretrain with degree-aware masking and reconstruction; aggregate via multi-head attention → fixed-size ligand embedding.
+- **Protein Encoder — ProtBert**  
+  Transformer embeddings from **ProtBert** (HuggingFace); mean/CLS pooling configurable → protein embedding.
+- **Fusion & Prediction — XGBoost Head**  
+  Concatenate (or bilinear fuse) ligand/protein embeddings → **XGBoost** for classification (probability) or regression (affinity). Optional **Platt / Isotonic** calibration improves reliability.
+
+_Backend stack_: PyTorch (+ CUDA), PyTorch Geometric, RDKit, FastAPI/Uvicorn, XGBoost, SHAP, 3Dmol.js (frontend).
+
+---
+
+## 5. Prerequisites
+- **OS**: Ubuntu 24.04 LTS (assumed below).
+- **GPU**: NVIDIA (tested on **RTX 4090**, 24 GB VRAM recommended for SHAP/occlusion).
+- **Driver/CUDA**: Recent NVIDIA driver; CUDA 11.8+ or CUDA 12.x supported by your PyTorch build.
+- **Conda**: Miniconda/Anaconda for clean, reproducible environments.
+
+---
+
+## 6. Installation (Ubuntu 24.04 + Conda + RTX 4090)
+
+```bash
+# 0) Essentials
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y git
+
+# 1) Clone
+git clone https://github.com/yourusername/molhuitu.git
+cd molhuitu
+
+# 2) Conda env (Python 3.10)
+conda create -n molhuitu python=3.10 -y
+conda activate molhuitu
+
+# 3) Channels & core deps
+conda config --add channels conda-forge
+
+# RDKit for cheminformatics
+conda install -y rdkit
+
+# PyTorch (CUDA 11.8 shown; pick the variant that matches your driver)
+conda install -y pytorch torchvision torchtext pytorch-cuda=11.8 -c pytorch -c nvidia
+
+# PyG ops (use pip wheels compatible with your torch/cuda)
+pip install torch-geometric torch-scatter torch-sparse torch-cluster torch-spline-conv
+
+# Misc libs
+pip install "transformers==4.*" xgboost shap fastapi "uvicorn[standard]" 3dmol
+
+# 4) Project install (editable)
+pip install -e .
+
+# 5) Sanity checks
+python - <<'PY'
+import torch, rdkit
+print("CUDA available:", torch.cuda.is_available())
+PY
+nvidia-smi
+```
+
+> **Models**: place ProtBert under `./protbert_model/` (or allow first-run auto-download). Keep HG-MAE checkpoints in `./hydra/.../checkpoints/` and XGBoost models in `./xgbout/`.
+
+---
+
+## 7. Repository Layout
+```
+molhuitu/
+├─ hydra/                         # configs & training/infer outputs
+├─ protbert_model/                # local ProtBert (optional; else auto-download)
+├─ scripts/
+│   └─ dti_e2e_predict.py         # end-to-end CLI entry
+├─ src/                           # Python sources (backend, models, encoders, API)
+├─ web_frontend/                  # static web app (HTML/CSS/JS, 3Dmol.js)
+├─ xgbout/                        # xgboost heads (.json)
+├─ outputs/                       # predictions, reports, SHAP, assets
+├─ batch_template.csv             # batch input template
+├─ batch_template.pred.csv        # batch output example
+├─ transferconda.yml              # optional env recipe
+└─ requirements.txt               # optional pip requirements
+```
+
+---
+
+## 8. Quick Start
+
+### A) Run the web API (FastAPI + Uvicorn)
+```bash
+# from project root
+uvicorn src.app:app --host 0.0.0.0 --port 8000
+# Open: http://<server-ip>:8000
+```
+
+### B) Open the web frontend
+Serve `web_frontend/` via the same FastAPI static route (recommended) or any HTTP server/proxy that points to the API origin.  
+> **Tip**: Host UI and API on the same origin to avoid CORS complications.
+
+---
+
+## 9. CLI — Single & Batch Prediction
+
+### A) **End-to-End single sample** (your working reference)
+```bash
+python scripts/dti_e2e_predict.py \
+  --smiles 'CCO' \
+  --sequence 'ACDEFGHIKLMNPQRSTVWY' \
+  --xgb_model xgbout/davisreg_xgb.json \
+  --hg_ckpt hydra/version2/outputs/max_full_baseline/pretrain_with_delta_20250919_175430/checkpoints/checkpoint_step_1500.pth \
+  --hg_config hydra/version2/outputs/max_full_baseline/pretrain_with_delta_20250919_175430/config.json \
+  --protbert_model ./protbert_model \
+  --device cuda \
+  --task regression \
+  --output outputs/pred/pred.json \
+  --explain_atoms \
+  --explain_residues \
+  --shap_background_strategy mix \
+  --background 5 \
+  --nsamples 10 \
+  --shap_topk 10 \
+  --shap_out outputs/dtishap/explain.json \
+  --residue_explainer occlusion \
+  --residue_max 512 \
+  --residue_stride 1
+```
+
+#### Common args (curated)
+- **Core**
+  - `--task {binary|regression}`: task type (default: `binary`)
+  - `--device {cuda|cpu}`: device (auto if omitted)
+  - `--output PATH`: JSON output for single-sample mode
+- **Models / assets**
+  - `--hg_ckpt FILE.pth` **(required)**: HyperGraph-MAE weights
+  - `--hg_config FILE.json|yaml`: HG-MAE config (default project config if omitted)
+  - `--protbert_model NAME|DIR`: ProtBert ID or local dir (e.g., `./protbert_model`)
+  - `--xgb_model FILE.json`: trained XGBoost head (**required** in predict mode)
+  - `--timeout_seconds N`: hypergraph build timeout (optional)
+- **Single prediction**
+  - `--smiles STR` and `--sequence STR` (both required)
+  - `--pool {mean|max|sum}`: ligand pooling (default `mean`)
+  - `--prot_pool {mean|cls}`: protein pooling (default `mean`)
+  - `--no_norm`: disable L2-norm on ligand embedding
+- **Batch CSV**
+  - `--csv FILE.csv`, `--smiles_col`, `--sequence_col`, `--id_col`
+  - `--output_csv OUT.csv` (default: `input.pred.csv`)
+  - `--skip_invalid`: skip bad rows
+  - `--label_col`: (0/1) for metrics
+  - `--threshold`: decision threshold (default `0.5`)
+- **Preprocessing**
+  - `--use_preprocess` / `--no_preprocess` (default off)
+  - `--no_standardize`, `--keep_metals`, `--max_atoms N`
+- **Train XGBoost (optional)**
+  - `--train_xgb`, `--xgb_out`, `--cv5`
+  - `--drug_emb_parquet`, `--prot_emb_parquet`
+  - `--val_ratio`, `--test_ratio`, `--test_csv`, `--seed`
+  - **Hyper-params**: `--xgb_lr`, `--xgb_n_round`, `--xgb_early_stopping`,
+    `--xgb_max_depth`, `--xgb_max_leaves`, `--xgb_subsample`, `--xgb_colsample`,
+    `--xgb_max_bin`, `--xgb_reg_lambda`, `--xgb_reg_alpha`,
+    `--xgb_min_child_weight`, `--xgb_gamma`, `--auto_scale_pos_weight`, `--eval_period`
+  - **Optuna**: `--optuna`, `--n_trials`, `--opt_metric {aucpr|auc|mse|rmse|mae|r2}`, `--timeout`
+  - **Calibration**: `--calibration_method {platt|isotonic}`, `--calibrate_in_train`
+- **Explainability**
+  - `--explain_atoms`: atom-level SHAP (KernelSHAP + node masking)
+  - `--explain_residues`: residue-level (KernelSHAP or occlusion)
+  - `--prot_occlusion {drop|mask}` (default `drop`)
+  - `--residue_explainer {kernelshap|occlusion}` (default `occlusion`)
+  - `--residue_max N` (default `512`), `--residue_stride S` (default `1`)
+  - `--shap_background_strategy {zeros|random_keep|mix}` (default `random_keep`)
+  - `--background N` (default `20`), `--nsamples N` (default `200`)
+  - `--shap_topk K` (default `20`), `--shap_out FILE.json`, `--shap_batch B`
+  - `--viz_atoms_png FILE.png`, `--viz_atoms_svg FILE.svg`
+
+### B) Batch mode (CSV)
+```bash
+python scripts/dti_e2e_predict.py \
+  --csv batch_template.csv \
+  --smiles_col smiles --sequence_col sequence \
+  --output_csv outputs/batch_results.pred.csv \
+  --threshold 0.5 --skip_invalid
+```
+
+---
+
+## 10. Explainability (Technical)
+- **Atom-level SHAP (KernelSHAP)**: approximate Shapley values by masking ligand nodes/hyperedges and observing Δscore. High positive SHAP → atom critical for binding. Output includes **Top-K atoms** with contributions; visual overlays (2D/3D) reflect magnitude.
+- **Residue-level Occlusion**: leave-one-out masking of residues (or windows with `--residue_stride`) to estimate each position’s importance. Reports **Top-K residues**, typically aligning with pocket residues in 3D.
+- **Consistency Check**: optional metric correlating atom hotspots and nearby residue hotspots in 3D; high score suggests stable, geometry-consistent rationale.
+
+---
+
+## 11. 3D Viewer & Offline/CDN Fallback
+Frontend uses **3Dmol.js** for interactive structures (protein from AlphaFold/PDB; ligand from MOL/SDF or generated conformers).  
+**Recommended loader (local first, then CDN):**
+```html
+<script src="./3Dmol-min.js"
+  onerror="(function(){
+    var s=document.createElement('script');
+    s.src='https://3Dmol.org/build/3Dmol-min.js';
+    document.head.appendChild(s);
+  })();">
+</script>
+<!-- your app scripts -->
+<script src="./results_ligand_fix.js"></script>
+<div id="ligand3dViewer" style="width:100%;height:360px;border:1px solid #eee;border-radius:8px;"></div>
+```
+> Host `3Dmol-min.js` locally under `web_frontend/` for intranet; the `onerror` fallback pulls from the public CDN when accessible.
+
+---
+
+## 12. Performance Tips
+- **GPU**: Prefer ≥24 GB VRAM for SHAP/occlusion. Watch with `watch -n1 nvidia-smi`.
+- **Throughput**: Omit `--explain_*` for fast screening; add explanations selectively.
+- **Precision**: Mixed precision (FP16) can help; validate SHAP stability if enabled.
+- **Warm Model**: Keep the API running to avoid repeated weight loads.
+- **Parallelism**: Queue jobs; only parallelize if VRAM allows.
+- **Reverse Proxy**: Serve static UI via NGINX; proxy API to Uvicorn; enable HTTPS.
+
+---
+
+## 13. Run as a Service (systemd)
+Create `/etc/systemd/system/molhuitu.service`:
+```ini
+[Unit]
+Description=MolHuiTu DTI Prediction Service
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/path/to/molhuitu
+ExecStart=/bin/bash -lc 'source ~/miniconda3/etc/profile.d/conda.sh && conda activate molhuitu && uvicorn src.app:app --host 0.0.0.0 --port 8000'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable & start:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable molhuitu
+sudo systemctl start molhuitu
+sudo systemctl status molhuitu --no-pager
+```
+
+---
+
+## 14. Troubleshooting
+- **Conda resolution issues** → install in smaller groups; consider `mamba`.
+- **RDKit ImportError** → ensure **conda-forge** RDKit (not pip) is used.
+- **CUDA unavailable** → check driver; `python -c "import torch; print(torch.cuda.is_available())"`.
+- **OOM during explainability** → reduce `--nsamples`, `--background`, `--shap_topk`, or `--residue_max`; disable one explainer.
+- **UI can’t fetch 3D** → verify internet/DB access; local fallback for ligand; “No available 3D structure” is normal if none exists.
+- **Long SHAP runtimes** → use fewer samples or approximate modes; run explanations offline and cache results.
+
+---
+
+## 15. Security & Production Notes
+- **Auth**: Demo setups may use static credentials; for real deployments, integrate proper auth (tokens/OIDC).
+- **CORS**: Prefer serving UI and API on the **same origin**.
+- **Rate-limiting & Timeouts**: Configure NGINX/Gunicorn/Uvicorn appropriately for long explainability jobs.
+- **Data Privacy**: Avoid uploading proprietary sequences/ligands to external services when generating 3D.
+
+---
+
+## 16. License
+This repository is released for **research and evaluation**.  
+> **Default stance**: _All rights reserved_ unless a LICENSE file is provided.  
+If you wish to allow limited reuse while protecting commercial rights, consider a **Non-Commercial** license (e.g., CC BY-NC-SA) or a **copyleft network license** (e.g., AGPL-3.0). Set your final choice in `LICENSE`.
+
+---
+
+## 17. Acknowledgements
+Built on the shoulders of **RDKit**, **PyTorch**, **PyG**, **HuggingFace (ProtBert)**, **XGBoost**, **SHAP**, and **3Dmol.js**.  
+Software registration: _China National Copyright Administration_ **2025SR1938362** (MolHuiTu V8.1.2025).  
+Thanks to all contributors and the community. **Happy researching!** 🎉
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # MolHuiTu
 
 MolHuiTu (Molecular Intelligence Graph) is a web-based platform for drug-target interaction (DTI) prediction. It leverages advanced deep learning models (including pre-trained protein language models like ProtBERT) to analyze both small molecule and protein target data, providing predictions and interactive visualizations. MolHuiTu is designed to help researchers quickly evaluate potential drug-target interactions with an intuitive interface and high-performance backend (optimized for NVIDIA GPUs).
