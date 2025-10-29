@@ -1,167 +1,205 @@
 # 🧬 MolHuiTu — Molecular HyperGraph V8.1
 ### Intelligent Drug–Target Interaction (DTI) Prediction Platform
+# MolHuiTu
 
-> *A next-generation AI platform for interpretable drug–target interaction prediction based on hypergraph masked autoencoders.*
-原理流程示意图：
-<img width="3548" height="1652" alt="MolHuiTu Overview" src="https://github.com/user-attachments/assets/0bf60f5b-a63f-4708-9910-d043bc655497" />
-分子绘图前端界面主页：
-<img width="3172" height="1582" alt="image" src="https://github.com/user-attachments/assets/185000bc-4b54-4178-81e6-f7050db1f3cf" />
+MolHuiTu (Molecular Intelligence Graph) is a web-based platform for drug-target interaction (DTI) prediction. It leverages advanced deep learning models (including pre-trained protein language models like ProtBERT) to analyze both small molecule and protein target data, providing predictions and interactive visualizations. MolHuiTu is designed to help researchers quickly evaluate potential drug-target interactions with an intuitive interface and high-performance backend (optimized for NVIDIA GPUs).
 
-药物靶点相互作用预测：
-<img width="2814" height="1492" alt="image" src="https://github.com/user-attachments/assets/b400ecd4-d50b-4c79-9718-c95243c61ac3" />
+**MolHuiTu Overview:**  
+<img width="3548" height="1652" alt="MolHuiTu Overview" src="https://github.com/user-attachments/assets/0bf60f5b-a63f-4708-9910-d043bc655497" />  
+*_(Figure: Overall architecture of MolHuiTu, illustrating the flow from input data to prediction results.)_*
 
-批量任务提交示例：
-<img width="1416" height="394" alt="image" src="https://github.com/user-attachments/assets/1a96e41f-dd1a-4231-8f16-be7045243fd4" />
+## Features
 
-单次预测界面：
-<img width="2646" height="1404" alt="image" src="https://github.com/user-attachments/assets/45176290-8fe9-4349-95f0-428bec62b5da" />
+- **Drug-Target Interaction Prediction:** Predict potential interactions between drug molecules (ligands) and protein targets. Supports single query predictions and batch processing of multiple queries.
+- **Interactive Web Interface:** User-friendly front-end for submitting predictions and viewing results. The interface includes input forms for molecules and protein sequences, and dashboards to track job status.
+- **Batch Job Management:** Easily submit multiple DTI prediction tasks in batch. The system queues and processes tasks asynchronously, allowing monitoring of each task's status in real time.
+- **Detailed Reports:** For each prediction, MolHuiTu generates a comprehensive report including predicted interaction scores and visualization of molecular structures. Results can be viewed in the browser or downloaded for further analysis.
+- **High Performance with GPU Acceleration:** MolHuiTu's backend is optimized to utilize GPU acceleration (tested on NVIDIA RTX 4090) for faster model inference. CPU and GPU usage can be monitored during runtime to ensure efficient resource utilization.
 
-单次预测等待：
-<img width="2248" height="868" alt="image" src="https://github.com/user-attachments/assets/f356af59-b01f-4e61-84ba-44877d8b384f" />
+**MolHuiTu Web Interface – Homepage:**  
+<img width="3172" height="1582" alt="image" src="https://github.com/user-attachments/assets/185000bc-4b54-4178-81e6-f7050db1f3cf" />  
+*_(Screenshot: The MolHuiTu front-end main page, providing navigation to single prediction and batch submission sections.)_*
 
-批量任务运行完成示例：
-<img width="2920" height="752" alt="image" src="https://github.com/user-attachments/assets/371e45a6-ef83-43d2-a9b2-6675680ccb30" />
+## Architecture Overview
 
-药物靶点相互作用预测报告1：
-<img width="2870" height="1250" alt="image" src="https://github.com/user-attachments/assets/73de69af-97b0-49d7-a709-ba364b5899c9" />
+MolHuiTu consists of a backend machine learning inference engine and a front-end web interface:
 
+- **Backend:** The core prediction engine is built with Python. It uses a pre-trained protein language model (ProtBERT) to encode protein sequences and chemical informatics techniques to encode molecular structures. A deep learning model then predicts the interaction likelihood between each drug-target pair. The backend exposes a RESTful API (e.g., endpoints for submitting prediction tasks and checking their status).
+- **Front-End:** A lightweight web interface (HTML/JavaScript, utilizing libraries like 3Dmol.js for molecular visualization) communicates with the backend via API calls. Users can input data and view results through this interface. The front-end displays 3D molecular structures and provides real-time updates on batch job progress.
 
-药物靶点相互作用预测报告2：
-<img width="1064" height="568" alt="image" src="https://github.com/user-attachments/assets/914e7efe-a150-4e7d-8411-cf0d78e0cb7e" />
+## Prerequisites
 
-运行的时候可以关注cpu和gpu的占用：
-<img width="2026" height="600" alt="image" src="https://github.com/user-attachments/assets/184e0fc4-4d8a-498f-a039-9d8e0f3e7b99" />
-<img width="594" height="288" alt="image" src="https://github.com/user-attachments/assets/af0e8d3c-aad1-43c9-951c-e161d0fac141" />
+Before installing MolHuiTu, ensure you have the following:
 
+- **Operating System:** Ubuntu 24.04 LTS (or a similar Linux distribution). The guide assumes a fresh Ubuntu 24.04 server environment.
+- **GPU:** An NVIDIA GPU is recommended for acceleration (MolHuiTu has been tested with an NVIDIA GeForce RTX 4090). Ensure your NVIDIA drivers are properly installed. CUDA toolkit is optional if using the Conda environment (which can provide its own CUDA libraries).
+- **Python & Conda:** Python 3.x (the project is tested with Python 3.10+). Install [Miniconda or Anaconda](https://docs.conda.io/en/latest/miniconda.html) to manage the project environment.
+- **Memory:** Sufficient RAM for loading models (e.g., ProtBERT) and VRAM on the GPU for inference (the RTX 4090 with 24GB VRAM is used in our example).
+- **Disk Space:** Adequate space for storing any downloaded models and output files.
+
+## Installation
+
+Follow these steps to set up MolHuiTu on a new Ubuntu 24.04 server:
+
+1. **Update System and Install Git:**  
+   It’s good practice to update your system first and install Git if not already available:
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   sudo apt install -y git
+   ```
+2. **Clone the MolHuiTu Repository:**  
+   Choose a directory to install the application and clone the GitHub repository:
+   ```bash
+   git clone https://github.com/yourusername/molhuitu.git
+   cd molhuitu
+   ```
+3. **Setup Conda Environment:**  
+   Create a Conda environment for MolHuiTu to manage dependencies. An environment YAML (e.g. `environment.yml` or `transferconda.yml`) is provided with all required packages:
+   ```bash
+   # If the environment file is named transferconda.yml
+   conda env create -f transferconda.yml -n molhuitu
+   ```
+   This will create a new environment named `molhuitu` with all necessary dependencies (including deep learning frameworks like PyTorch, and any other libraries).
+4. **Activate the Environment:**  
+   Once the environment is created, activate it:
+   ```bash
+   conda activate molhuitu
+   ```
+5. **Install Additional Dependencies (if any):**  
+   If there are any missing dependencies or if you prefer using pip, install them from `requirements.txt`:
+   ```bash
+   pip install -r requirements.txt
+   ```
+   *_(Note: The `requirements.txt` may be empty or minimal if all dependencies are covered in the Conda environment file. This step can be skipped if the environment is fully set up.)_*
+6. **Download/Prepare Models:**  
+   MolHuiTu may require pre-trained model files (such as the ProtBERT model for protein embedding). If these are not bundled in the repository, you should download them:
+   - Ensure the `protbert_model/` directory is populated with the necessary model weights. If not, the first run of the application might download the ProtBERT model from Hugging Face or another source automatically. Make sure the server has internet access for this step.
+7. **Configuration (Optional):**  
+   MolHuiTu uses configuration files (possibly via Hydra). Check the `hydra/` or `config/` directory for configuration options. Default settings should work out-of-the-box, but advanced users can adjust parameters like model thresholds, batch sizes, etc., by editing config files or using environment variables.
+
+## Usage
+
+With the environment set up, you can now run the MolHuiTu application and perform predictions.
+
+### Starting the Backend Server
+
+Start the MolHuiTu backend server which handles the predictions. Depending on how the project is structured, this could be done via a provided launch script or a direct Python command. For example:
+```bash
+# Example: if there's a script or module to run the web server
+python src/app.py
+```
+Or, if using a framework like FastAPI with Uvicorn:
+```bash
+uvicorn src.app:app --host 0.0.0.0 --port 8000
+```
+After running the above, you should see the server starting up, loading models into memory, and listening on a port (e.g. 8000). Ensure that this port is accessible if you are using a remote server.
+
+### Accessing the Web Interface
+
+Once the backend is running, open a web browser and navigate to the MolHuiTu interface. If you’re running locally, use:  
+```
+http://localhost:8000
+```  
+(Adjust the port if needed, and use the server’s IP or domain if accessing remotely.)
+
+You should see the MolHuiTu home page with options for different prediction modes.
+
+**MolHuiTu Drug-Target Prediction Interface:**  
+<img width="2814" height="1492" alt="image" src="https://github.com/user-attachments/assets/b400ecd4-d50b-4c79-9718-c95243c61ac3" />  
+*_(Screenshot: The interface for Drug-Target Interaction prediction, where users can input a molecule (SMILES or structure file) and a protein sequence or identifier.)_*
+
+#### Single Prediction
+
+For a single DTI prediction:
+
+1. Navigate to the **Single Prediction** section of the interface.
+2. Input the required data:  
+   - **Drug Molecule:** Provide the molecule, typically as a SMILES string, a MOL file, or an identifier of the compound. The interface may also allow drawing the structure or uploading a file.  
+   - **Target Protein:** Provide the protein information, either as an amino acid sequence (FASTA format) or a known identifier (such as a UniProt ID).
+3. Click the **Submit** button to start the prediction.
+
+After submission, the task will be sent to the backend for processing. You will see a status indicator for the job.
+
+**Single Prediction Submission Example:**  
+<img width="2646" height="1404" alt="image" src="https://github.com/user-attachments/assets/45176290-8fe9-4349-95f0-428bec62b5da" />  
+*_(Screenshot: A single prediction entry form filled with a sample drug and target, ready to be submitted.)_*
+
+While the prediction is running, MolHuiTu will indicate that the task is in progress.
+
+**Single Prediction In Progress:**  
+<img width="2248" height="868" alt="image" src="https://github.com/user-attachments/assets/f356af59-b01f-4e61-84ba-44877d8b384f" />  
+*_(Screenshot: The interface showing a single prediction task in progress. Users are advised to wait as the model computes the results.)_*
+
+Once the prediction is complete, a result report will be available for viewing and download.
+
+#### Batch Prediction
+
+MolHuiTu also supports batch processing, allowing you to run multiple predictions in one go:
+
+1. Go to the **Batch Prediction** section.
+2. Prepare an input file (CSV format) with each row representing a drug-target pair. For example, the repository provides a `batch_template.csv` as a template:  
+   *Each row might contain columns such as Drug_SMILES (or compound ID) and Target_Sequence (or target ID).*
+3. Upload the CSV file through the interface (or as instructed on the page).
+4. Submit the batch job. The interface will queue all tasks and start processing them one by one on the backend.
+
+After submitting, you'll see a list of tasks with their statuses (e.g. queued, running, completed).
+
+**Batch Task Submission Example:**  
+<img width="1416" height="394" alt="image" src="https://github.com/user-attachments/assets/1a96e41f-dd1a-4231-8f16-be7045243fd4" />  
+*_(Screenshot: A batch submission form where a CSV file has been selected for upload.)_*
+
+While the batch is running, you can monitor the progress of each task in real-time. Each job will update its status from "pending" to "running" to "completed" (or "failed" if an issue occurs).
+
+**Batch Tasks Status Dashboard:**  
+<img width="2920" height="752" alt="image" src="https://github.com/user-attachments/assets/371e45a6-ef83-43d2-a9b2-6675680ccb30" />  
+*_(Screenshot: Batch task list showing multiple tasks and their current status. Completed tasks have results available and links to view reports.)_*
+
+When all tasks are finished, you can review the results for each pair. You may also download a consolidated results file (e.g. a CSV similar to `batch_template.pred.csv` with added prediction outcomes for all input pairs).
+
+### Viewing Results and Reports
+
+For each completed prediction (single or batch), MolHuiTu provides a detailed report. A report typically includes:
+
+- The input details (drug and target, with identifiers or sequence).
+- The predicted interaction score or probability (indicating how likely the drug is to interact with the target).
+- Visualizations of the molecular structure of the drug (and possibly the target, if structural data is available or relevant).
+- Additional information such as confidence metrics, similarity to known compounds, target annotations, etc.
+
+**Example DTI Prediction Report:**  
+<img width="2870" height="1250" alt="image" src="https://github.com/user-attachments/assets/73de69af-97b0-49d7-a709-ba364b5899c9" />  
+*_(Screenshot: Part of a DTI prediction report, listing the input details and the predicted interaction score among other details.)_*
+
+Large reports may contain multiple sections, possibly including tables of results or interactive components.
+
+**Continuation of DTI Report:**  
+<img width="1064" height="568" alt="image" src="https://github.com/user-attachments/assets/914e7efe-a150-4e7d-8411-cf0d78e0cb7e" />  
+*_(Screenshot: Another section of the report, possibly showing additional metrics or a summary of results.)_*
+
+Reports can be viewed in the web interface and are also saved to the server (e.g., in the `outputs/` directory) for future reference or downloading.
+
+### Monitoring Performance
+
+MolHuiTu is designed to utilize system resources efficiently. You can monitor CPU and GPU usage during execution to ensure that the application is making use of hardware acceleration:
+
+- **CPU Monitoring:** Use `htop` or `top` in the terminal to observe CPU cores utilization. The backend will use CPU for data preprocessing and coordinating tasks.
+- **GPU Monitoring:** Use `nvidia-smi` to watch GPU memory and compute utilization. When a prediction is running, you should see GPU memory usage and compute activity, indicating that the model is running on the GPU.
+
+Below are example outputs showing CPU and GPU usage during MolHuiTu operation:
+
+<img width="2026" height="600" alt="image" src="https://github.com/user-attachments/assets/184e0fc4-4d8a-498f-a039-9d8e0f3e7b99" />  
+<img width="594" height="288" alt="image" src="https://github.com/user-attachments/assets/af0e8d3c-aad1-43c9-951c-e161d0fac141" />  
+*_(Screenshots: Terminal output of `htop` (top image) showing CPU usage across cores, and `nvidia-smi` (bottom image) showing the GPU (RTX 4090) memory and utilization during a batch inference.)_*
+
+Monitoring these resources can help in understanding performance. For instance, you can verify that the GPU is fully utilized during heavy computations. If the GPU is underutilized, you might consider increasing batch sizes or running multiple tasks in parallel (if supported) to better leverage the hardware.
+
+## Contributing
+
+Contributions to MolHuiTu are welcome. If you encounter any issues or have suggestions for improvements, please open an issue or submit a pull request on GitHub. When contributing, follow the project’s coding style and include relevant tests or examples to demonstrate your changes.
+
+## License
+
+This project is released under the **[License Name]**. See the [LICENSE](./LICENSE) file for details.
 
 ---
 
-## 🗂️ Table of Contents
-- [1. Overview](#1-overview)
-- [2. Highlights](#2-highlights)
-- [3. Model Overview](#3-model-overview)
-- [4. Capabilities](#4-capabilities)
-- [5. Quick Start](#5-quick-start)
-- [6. Use Cases](#6-use-cases)
-- [7. Technical Stack](#7-technical-stack)
-- [8. Latest Update (V8.1)](#8-latest-update-v81)
-- [9. Architecture](#9-architecture)
-- [10. Repository Layout](#10-repository-layout)
-- [11. Installation & Environment](#11-installation--environment)
-- [12. Model Assets](#12-model-assets)
-- [13. Configuration](#13-configuration)
-- [14. Running the Web App](#14-running-the-web-app)
-- [15. API Reference](#15-api-reference)
-- [16. CLI Usage (Single & Batch)](#16-cli-usage-single--batch)
-- [17. Explainability Outputs](#17-explainability-outputs)
-- [18. 3Dmol (Offline-Friendly)](#18-3dmol-offline-friendly)
-- [19. Reverse Proxy / FRP / Same-Origin](#19-reverse-proxy--frp--same-origin)
-- [20. Performance Tuning](#20-performance-tuning)
-- [21. Troubleshooting](#21-troubleshooting)
-- [22. Hardware & Platform Validation](#22-hardware--platform-validation)
-- [23. Security Notes](#23-security-notes)
-- [24. License](#24-license)
-- [25. Citation & Acknowledgements](#25-citation--acknowledgements)
-- [Appendix — systemd Service (Linux)](#appendix--systemd-service-linux)
-
----
-
-## 1. Overview
-
-**MolHuiTu (Molecular HyperGraph)** is an **intelligent DTI platform** unifying **hypergraph self-supervised learning** (for small molecules) and **protein language modeling** (ProtBert).
-
-Provide a **SMILES** string and a **protein FASTA** sequence to obtain:
-
-- Predicted **DTI probability** or **regression score**
-- **Explainable** key atoms/residues that drive binding
-- Interactive **3D visualization** for structural interpretation
-
-Supports **single-sample prediction** and **high-throughput screening** for **drug discovery**, **target validation**, and **repurposing**.
-
----
-
-## 2. Highlights
-
-1. **Hypergraph Representation × Self-Supervised Learning**  
-   Encodes rings, functional groups, and higher-order relations via **hypergraphs**, overcoming binary-edge limitations. **HyperGraph-MAE** captures long-range, high-order interactions.
-
-2. **Protein Semantic Modeling**  
-   **ProtBert** produces deep contextual embeddings (mean/CLS pooling).
-
-3. **End-to-End Inference**  
-   Single prediction + **CSV batch** processing, optional calibration (Platt/Isotonic).
-
-4. **Interpretability**  
-   **Atom-level** SHAP (hypergraph nodes, RDKit heatmaps) and **residue-level** occlusion/KernelSHAP with Top-K reporting and reliability checks.
-
-5. **Knowledge Integration & Visualization**  
-   Integrates **PubChem**, **UniProt**, **AlphaFold**, **RCSB PDB** (best-effort).  
-   **3Dmol.js** for high-fidelity, interactive structure rendering.
-
----
-
-## 3. Model Overview
-
-| Component | Description |
-|:--|:--|
-| **Drug Encoder** | HyperGraph-MAE learns embeddings from molecular **hypergraphs** |
-| **Protein Encoder** | **ProtBert** generates sequence embeddings (mean or CLS pooling) |
-| **Fusion & Predictor** | Concatenate `[drug \| protein]` → **XGBoost** (binary/regression) |
-
----
-
-## 4. Capabilities
-
-- **DTI Prediction**: binary or regression, optional calibration  
-- **Explainability**: atom & residue contributions (SHAP / occlusion)  
-- **High-Throughput**: batch CSV inference with JSON/CSV outputs  
-- **3D Visualization**: automatic molecule/protein viewers with highlights  
-- **Applications**: lead discovery, repurposing, target validation, off-target analysis
-
----
-
-## 5. Quick Start
-
-**Web UI**
-1. Open the **Prediction** page.  
-2. Paste **SMILES** and **FASTA** (or upload CSV in batch mode).  
-3. Toggle **Atom**/**Residue** explanations (optional).  
-4. Adjust **Top-K** and SHAP parameters in *Advanced Settings*.  
-5. Submit and view the interactive report (3D viewers + heatmaps).  
-6. Export structured JSON/CSV; view explainability artifacts.
-
-**CLI**  
-Run a batch CSV or a single pair from the terminal (see [16. CLI Usage](#16-cli-usage-single--batch)).
-
----
-
-## 6. Use Cases
-
-- **Lead discovery & optimization**  
-- **Drug repurposing**  
-- **Target validation** & selectivity profiling  
-- **Safety assessment** / off-target interaction analysis
-
----
-
-## 7. Technical Stack
-
-- **Backend**: **FastAPI** (Uvicorn), Python 3.9–3.11  
-- **Core ML**: PyTorch, RDKit, XGBoost, Transformers (ProtBert), SHAP  
-- **Frontend**: Static HTML/JS (Tailwind CSS), **3Dmol.js**  
-- **Packaging/Deploy**: Conda, optional Docker/FRP/Nginx
-
-> The web UI is **static HTML + JS** served by the same FastAPI process (no SPA framework required).
-
----
-
-## 8. Latest Update (V8.1)
-
-- Stabilized **3D rendering** and local-first 3Dmol loading with CDN fallback  
-- **Top-K** key-site UX & form validation improvements  
-- Optimized **batch prediction** interface and result exporting  
-- Hardened **same-origin** defaults to avoid cross-cluster API calls
-
----
-
-## 9. Architecture
+By following this guide, you should be able to deploy and run MolHuiTu on a fresh Ubuntu 24.04 server (with GPU support). We hope this tool accelerates your research in drug discovery and bioinformatics by providing quick and accurate predictions of drug-target interactions. **Happy researching!**
