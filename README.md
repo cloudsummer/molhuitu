@@ -6,6 +6,7 @@ MolHuiTu (Molecular Intelligence Graph) is a web-based platform for drug-target 
 
 **MolHuiTu Overview:**  
 <img width="3548" height="1652" alt="MolHuiTu Overview" src="https://github.com/user-attachments/assets/0bf60f5b-a63f-4708-9910-d043bc655497" />  
+
 *_(Figure: Overall architecture of MolHuiTu, illustrating the flow from input data to prediction results.)_*
 
 ## Features
@@ -18,6 +19,7 @@ MolHuiTu (Molecular Intelligence Graph) is a web-based platform for drug-target 
 
 **MolHuiTu Web Interface – Homepage:**  
 <img width="3172" height="1582" alt="image" src="https://github.com/user-attachments/assets/185000bc-4b54-4178-81e6-f7050db1f3cf" />  
+
 *_(Screenshot: The MolHuiTu front-end main page, providing navigation to single prediction and batch submission sections.)_*
 
 ## Architecture Overview
@@ -146,6 +148,7 @@ After submitting, you'll see a list of tasks with their statuses (e.g. queued, r
 
 **Batch Task Submission Example:**  
 <img width="1416" height="394" alt="image" src="https://github.com/user-attachments/assets/1a96e41f-dd1a-4231-8f16-be7045243fd4" />  
+
 *_(Screenshot: A batch submission form where a CSV file has been selected for upload.)_*
 
 While the batch is running, you can monitor the progress of each task in real-time. Each job will update its status from "pending" to "running" to "completed" (or "failed" if an issue occurs).
@@ -186,8 +189,8 @@ MolHuiTu is designed to utilize system resources efficiently. You can monitor CP
 
 Below are example outputs showing CPU and GPU usage during MolHuiTu operation:
 
-<img width="2026" height="600" alt="image" src="https://github.com/user-attachments/assets/184e0fc4-4d8a-498f-a039-9d8e0f3e7b99" />  
-<img width="594" height="288" alt="image" src="https://github.com/user-attachments/assets/af0e8d3c-aad1-43c9-951c-e161d0fac141" />  
+<img width="1013" height="300" alt="image" src="https://github.com/user-attachments/assets/184e0fc4-4d8a-498f-a039-9d8e0f3e7b99" />  
+<img width="297" height="144" alt="image" src="https://github.com/user-attachments/assets/af0e8d3c-aad1-43c9-951c-e161d0fac141" />  
 *_(Screenshots: Terminal output of `htop` (top image) showing CPU usage across cores, and `nvidia-smi` (bottom image) showing the GPU (RTX 4090) memory and utilization during a batch inference.)_*
 
 Monitoring these resources can help in understanding performance. For instance, you can verify that the GPU is fully utilized during heavy computations. If the GPU is underutilized, you might consider increasing batch sizes or running multiple tasks in parallel (if supported) to better leverage the hardware.
