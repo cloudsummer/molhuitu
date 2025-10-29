@@ -154,7 +154,7 @@ nvidia-smi
 Models: place ProtBert under ./protbert_model/ (or allow first-run auto-download). Keep HyperGraph-MAE checkpoints in ./hydra/.../checkpoints/ and XGBoost models in ./xgbout/.
 
 ## 7. Repository Layout
-
+```
 molhuitu/
 ├─ hydra/                         # configs & training/infer outputs
 ├─ protbert_model/                # local ProtBert (optional; else auto-download)
@@ -168,6 +168,7 @@ molhuitu/
 ├─ batch_template.pred.csv        # batch output example
 ├─ transferconda.yml              # optional env recipe
 └─ requirements.txt               # optional pip requirements
+```
 
 ## 8. Quick Start
 
@@ -319,100 +320,94 @@ Xia Y. et al. MolHuiTu: Molecular HyperGraph V8.1 for Drug–Target Interaction,
 Developed by XY-Lab.
 
 ## Appendix — Full CLI Arguments
-Basics
-	•	--task {binary|regression}: task type (default binary)
-	•	--device {cuda|cpu}: compute device (auto if omitted)
-	•	--output PATH: JSON output for single-sample prediction
+---
+**Basics**
+- --task {binary|regression}: task type (default binary)
+- --device {cuda|cpu}: compute device (auto if omitted)
+- --output PATH: JSON output for single-sample prediction
 
-Model & required assets
-	•	--hg_ckpt FILE.pth (required): HyperGraph-MAE weights
-	•	--hg_config FILE.(json|yaml): HG-MAE config (default project config)
-	•	--protbert_model NAME|DIR: ProtBert model ID or local path (default Rostlab/prot_bert_bfd)
-	•	--xgb_model FILE.json: trained XGBoost head (required in predict mode)
-	•	--timeout_seconds N: hypergraph construction timeout (seconds)
+**Model & required assets**
+- --hg_ckpt FILE.pth **(required)**: HyperGraph-MAE weights
+- --hg_config FILE.(json|yaml): HG-MAE config (default project config)
+- --protbert_model NAME|DIR: ProtBert model ID or local path (default Rostlab/prot_bert_bfd)
+- --xgb_model FILE.json: trained XGBoost head (**required** in predict mode)
+- --timeout_seconds N: hypergraph construction timeout (seconds)
 
-Single-sample prediction
-	•	--smiles STR: ligand SMILES (required with --sequence)
-	•	--sequence STR: protein sequence in FASTA/plain (required with --smiles)
-	•	--pool {mean|max|sum}: ligand pooling (default mean)
-	•	--prot_pool {mean|cls}: protein pooling (default mean)
-	•	--no_norm: disable L2 normalization for ligand embeddings
+**Single-sample prediction**
+- --smiles STR: ligand SMILES (required with --sequence)
+- --sequence STR: protein sequence in FASTA/plain (required with --smiles)
+- --pool {mean|max|sum}: ligand pooling (default mean)
+- --prot_pool {mean|cls}: protein pooling (default mean)
+- --no_norm: disable L2 normalization for ligand embeddings
 
-Batch CSV prediction
-	•	--csv FILE.csv: input CSV
-	•	--smiles_col NAME (default smiles)
-	•	--sequence_col NAME (default sequence)
-	•	--id_col NAME: optional identifier column
-	•	--output_csv OUT.csv (default input.pred.csv)
-	•	--skip_invalid: skip malformed rows
-	•	--label_col NAME: optional ground-truth labels (0/1) for metrics
-	•	--threshold FLOAT (default 0.5): classification threshold
+**Batch CSV prediction**
+- --csv FILE.csv: input CSV
+- --smiles_col NAME (default smiles)
+- --sequence_col NAME (default sequence)
+- --id_col NAME: optional identifier column
+- --output_csv OUT.csv (default input.pred.csv)
+- --skip_invalid: skip malformed rows
+- --label_col NAME: optional ground-truth labels (0/1) for metrics
+- --threshold FLOAT (default 0.5): classification threshold
 
-Preprocessing (standardization & stats)
-	•	--use_preprocess / --no_preprocess (default off)
-	•	--no_standardize: disable standardization (only if preprocess on)
-	•	--keep_metals: keep metal-containing molecules
-	•	--max_atoms N (default 200): max atoms during standardization
-	•	--stats_sample_size N (default 10000): global stats sampling size
+**Preprocessing (standardization & stats)**
+- --use_preprocess / --no_preprocess (default off)
+- --no_standardize: disable standardization (only if preprocess on)
+- --keep_metals: keep metal-containing molecules
+- --max_atoms N (default 200): max atoms during standardization
+- --stats_sample_size N (default 10000): global stats sampling size
 
-Train XGBoost (optional)
-	•	--train_xgb: switch to training mode (requires --csv and --label_col)
-	•	--xgb_out FILE.json: save trained XGB head (default input.csv.xgb.json)
-	•	--cv5: 5-fold CV on training set (ignores --test_csv)
-	•	--drug_emb_parquet FILE.parquet: precomputed drug embeddings (columns: smiles, emb_*)
-	•	--prot_emb_parquet FILE.parquet: precomputed protein embeddings (columns: protein, emb_*)
-	•	--val_ratio FLOAT (default 0.1)
-	•	--test_ratio FLOAT (default 0.1; set 0 to disable)
-	•	--test_csv FILE.csv: separate test CSV
-	•	--seed INT (default 42)
+**Train XGBoost (optional)**
+- --train_xgb: switch to training mode (requires --csv and --label_col)
+- --xgb_out FILE.json: save trained XGB head (default input.csv.xgb.json)
+- --cv5: 5-fold CV on training set (ignores --test_csv)
+- --drug_emb_parquet FILE.parquet: precomputed drug embeddings (columns: smiles, emb_*)
+- --prot_emb_parquet FILE.parquet: precomputed protein embeddings (columns: protein, emb_*)
+- --val_ratio FLOAT (default 0.1)
+- --test_ratio FLOAT (default 0.1; set 0 to disable)
+- --test_csv FILE.csv: separate test CSV
+- --seed INT (default 42)
 
-XGBoost hyper-parameters
-	•	--xgb_lr FLOAT (default 0.1)
-	•	--xgb_n_round INT (default 1000)
-	•	--xgb_early_stopping INT (default 100)
-	•	--xgb_max_depth INT (default 0)
-	•	--xgb_max_leaves INT (default 1024; >0 uses lossguide and sets depth=0)
-	•	--xgb_subsample FLOAT (default 0.8)
-	•	--xgb_colsample FLOAT (default 0.8)
-	•	--xgb_max_bin INT (default 1024)
-	•	--xgb_reg_lambda FLOAT (default 9.0)
-	•	--xgb_reg_alpha FLOAT (default 0.0)
-	•	--xgb_min_child_weight FLOAT (default 7.0)
-	•	--xgb_gamma FLOAT (default 1.0)
-	•	--auto_scale_pos_weight: set scale_pos_weight=neg/pos automatically
-	•	--eval_period INT (default 1)
+**XGBoost hyper-parameters**
+- --xgb_lr FLOAT (default 0.1)
+- --xgb_n_round INT (default 1000)
+- --xgb_early_stopping INT (default 100)
+- --xgb_max_depth INT (default 0)
+- --xgb_max_leaves INT (default 1024; >0 uses lossguide and sets depth=0)
+- --xgb_subsample FLOAT (default 0.8)
+- --xgb_colsample FLOAT (default 0.8)
+- --xgb_max_bin INT (default 1024)
+- --xgb_reg_lambda FLOAT (default 9.0)
+- --xgb_reg_alpha FLOAT (default 0.0)
+- --xgb_min_child_weight FLOAT (default 7.0)
+- --xgb_gamma FLOAT (default 1.0)
+- --auto_scale_pos_weight: set scale_pos_weight=neg/pos automatically
+- --eval_period INT (default 1)
 
-Optuna hyper-param search (optional)
-	•	--optuna: enable HPO
-	•	--n_trials INT (default 30)
-	•	--opt_metric {aucpr|auc|mse|rmse|mae|r2}: optimization target (regression forces rmse)
-	•	--timeout SECONDS: wall-time cap for HPO
+**Optuna hyper-param search (optional)**
+- --optuna: enable HPO
+- --n_trials INT (default 30)
+- --opt_metric {aucpr|auc|mse|rmse|mae|r2}: optimization target (regression forces rmse)
+- --timeout SECONDS: wall-time cap for HPO
 
-Probability calibration (optional, during training)
-	•	--calibration_method {platt|isotonic} (default isotonic)
-	•	--calibrate_in_train: fit calibrator on validation set and apply in-memory
+**Probability calibration (optional, during training)**
+- --calibration_method {platt|isotonic} (default isotonic)
+- --calibrate_in_train: fit calibrator on validation set and apply in-memory
 
-Explainability / SHAP
-	•	--explain_atoms: atom-level SHAP (KernelSHAP + node masking)
-	•	--explain_residues: residue-level (KernelSHAP or occlusion)
-	•	--prot_occlusion {drop|mask} (default drop)
-	•	--residue_explainer {kernelshap|occlusion} (default occlusion)
-	•	--residue_max INT (default 512): max residues to analyze (excl. CLS/SEP)
-	•	--residue_stride INT (default 1)
-	•	--shap_background_strategy {zeros|random_keep|mix} (default random_keep)
-	•	--background INT (default 20)
-	•	--nsamples INT (default 200)
-	•	--shap_topk INT (default 20)
-	•	--shap_out FILE.json
-	•	--shap_batch INT (default 64)
-	•	--viz_atoms_png FILE.png, --viz_atoms_svg FILE.svg
-
-
-
-
-
-
-
+**Explainability / SHAP**
+- --explain_atoms: atom-level SHAP (KernelSHAP + node masking)
+- --explain_residues: residue-level (KernelSHAP or occlusion)
+- --prot_occlusion {drop|mask} (default drop)
+- --residue_explainer {kernelshap|occlusion} (default occlusion)
+- --residue_max INT (default 512): max residues to analyze (excl. CLS/SEP)
+- --residue_stride INT (default 1)
+- --shap_background_strategy {zeros|random_keep|mix} (default random_keep)
+- --background INT (default 20): background samples for SHAP
+- --nsamples INT (default 200): KernelSHAP sampling budget
+- --shap_topk INT (default 20): Top-K contributors to keep
+- --shap_out FILE.json: JSON output for explanations
+- --shap_batch INT (default 64): forward batch for SHAP
+- --viz_atoms_png FILE.png, --viz_atoms_svg FILE.svg: RDKit atom heatmap outputs
 
 
 
