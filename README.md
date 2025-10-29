@@ -1,5 +1,5 @@
 # 🧬 MolHuiTu — Molecular HyperGraph V8.1  
-**Intelligent Drug–Target Interaction (DTI) Prediction Platform · 演示版**
+**Intelligent Drug–Target Interaction (DTI) Prediction Platform · Demonstration**
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](#)
 [![PyTorch](https://img.shields.io/badge/PyTorch-%F0%9F%94%A5-red)](#)
