@@ -3,7 +3,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](#)
 [![PyTorch](https://img.shields.io/badge/PyTorch-%F0%9F%94%A5-red)](#)
-[![GPU](https://img.shields.io/badge/GPU-RTX%204090-tested-success)](#)
+[![GPU](https://img.shields.io/badge/GPU-RTX%204090--tested-success)](#)
 [![Status](https://img.shields.io/badge/Release-Demo%20Only-informational)](#)
 [![License](https://img.shields.io/badge/License-NonCommercial%20%7C%20NoDerivatives-lightgrey)](#16-license--usage)
 
