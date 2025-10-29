@@ -83,7 +83,7 @@ Monitor progress and download consolidated results:
 Per-sample reports summarize inputs, prediction scores, and visuals:
 
 <p align="center">
-  <img width="1435" height="625" alt="Report 1" src="https://github.com/user-attachments/assets/73de69af-97b0-49d7-a709-ba364b5899c9" />
+  <img width="718" height="313" alt="Report 1" src="https://github.com/user-attachments/assets/73de69af-97b0-49d7-a709-ba364b5899c9" />
 </p>
 
 Additional metrics and tables as needed:
