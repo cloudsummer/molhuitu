@@ -190,7 +190,8 @@ MolHuiTu is designed to utilize system resources efficiently. You can monitor CP
 Below are example outputs showing CPU and GPU usage during MolHuiTu operation:
 
 <img width="1013" height="300" alt="image" src="https://github.com/user-attachments/assets/184e0fc4-4d8a-498f-a039-9d8e0f3e7b99" />  
-<img width="297" height="144" alt="image" src="https://github.com/user-attachments/assets/af0e8d3c-aad1-43c9-951c-e161d0fac141" />  
+<img width="297" height="144" alt="image" src="https://github.com/user-attachments/assets/af0e8d3c-aad1-43c9-951c-e161d0fac141" /> 
+
 *_(Screenshots: Terminal output of `htop` (top image) showing CPU usage across cores, and `nvidia-smi` (bottom image) showing the GPU (RTX 4090) memory and utilization during a batch inference.)_*
 
 Monitoring these resources can help in understanding performance. For instance, you can verify that the GPU is fully utilized during heavy computations. If the GPU is underutilized, you might consider increasing batch sizes or running multiple tasks in parallel (if supported) to better leverage the hardware.
