@@ -74,9 +74,9 @@ Status is tracked during inference:
 
 ### 3.3 Batch Mode → CSV Screening
 Upload a CSV with columns like `smiles,sequence` (and optional labels/ids).  
-<p align="center"><img width="76%" alt="Batch Submit" src="https://github.com/user-attachments/assets/1a96e41f-dd1a-4231-8f16-be7045243fd4" /></p>
+<p align="center"><img width="82%" alt="Batch Submit" src="https://github.com/user-attachments/assets/1a96e41f-dd1a-4231-8f16-be7045243fd4" /></p>
 Monitor progress and download consolidated results:  
-<p align="center"><img width="90%" alt="Batch Completed" src="https://github.com/user-attachments/assets/371e45a6-ef83-43d2-a9b2-6675680ccb30" /></p>
+<p align="center"><img width="82%" alt="Batch Completed" src="https://github.com/user-attachments/assets/371e45a6-ef83-43d2-a9b2-6675680ccb30" /></p>
 
 ---
 
@@ -84,7 +84,7 @@ Monitor progress and download consolidated results:
 Per-sample reports summarize inputs, prediction scores, and visuals:  
 <p align="center"><img width="62%" alt="Report 1" src="https://github.com/user-attachments/assets/73de69af-97b0-49d7-a709-ba364b5899c9" /></p>
 Additional metrics and tables as needed:  
-<p align="center"><img width="48%" alt="Report 2" src="https://github.com/user-attachments/assets/914e7efe-a150-4e7d-8411-cf0d78e0cb7e" /></p>
+<p align="center"><img width="62%" alt="Report 2" src="https://github.com/user-attachments/assets/914e7efe-a150-4e7d-8411-cf0d78e0cb7e" /></p>
 
 ---
 
