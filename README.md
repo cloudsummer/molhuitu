@@ -320,9 +320,8 @@ Administration 2025SR1938362 (MolHuiTu V8.1.2025).
 If MolHuiTu helps your research, please cite this repo：
 
 ```
-Xia Y. et al. MolHuiTu: Molecular HyperGraph V8.1 for Drug–Target Interaction, 2025.
+Xia Y. et al. MolHuiTu: Molecular HyperGraph V8.1 for Drug–Target Interaction, 2025. Developed by XY-Lab.
 ```
-Developed by XY-Lab.
 
 ## Appendix — Full CLI Arguments
 ---
